@@ -176,44 +176,46 @@ Ticketing console for Support Agents
 
 Streaming Kafka-driven analytics
 
-**3. Architecture Overview**
-   +---------------------------+
-   |   Sender / Recipient App  |
-   |   Service Provider App    |
-   |   Admin & Support UI      |
-   +-------------+-------------+
-   |
-   REST / WS
-   |
-   +-------+--------+
-   |  Play Framework |
-   |    API Layer    |
-   +-------+---------+
-   |
-   Commands / Queries
-   |
-   +-------------+-----------------------------+
-   |         Pekko Cluster (Multi-Node)        |
-   |-------------------------------------------|
-   |  ShipmentActor (Sharded, Event-Sourced)   |
-   |  ServiceProviderActor                     |
-   |  SupportTicketActor (Event-Sourced)       |
-   |  NotificationActor                         |
-   |  RouteSupervisorActor                      |
-   +-------------+-----------------------------+
-   |
-   | Events (Kafka)
-   v
-   +-----------+
-   |   Kafka   |
-   +-----------+
-   |
-   Stream Processing / ETL
-   |
-   +-----------+
-   | Postgres  |
-   | Read Side |
-   +-----------+
+### 3. Architecture Overview
+```
++---------------------------+
+|   Sender / Recipient App  |
+|   Service Provider App    |
+|   Admin & Support UI      |
++-------------+-------------+
+              |
+           REST / WS
+              |
+      +-------+--------+
+      |  Play Framework |
+      |    API Layer    |
+      +-------+---------+
+              |
+       Commands / Queries
+              |
++-------------+-----------------------------+
+|         Pekko Cluster (Multi-Node)        |
+|-------------------------------------------|
+|  ShipmentActor (Sharded, Event-Sourced)   |
+|  ServiceProviderActor                     |
+|  SupportTicketActor (Event-Sourced)       |
+|  NotificationActor                         |
+|  RouteSupervisorActor                      |
++-------------+-----------------------------+
+              |
+              | Events (Kafka)
+              v
+        +-----------+
+        |   Kafka   |
+        +-----------+
+              |
+     Stream Processing / ETL
+              |
+        +-----------+
+        | Postgres  |
+        | Read Side |
+        +-----------+
+```
 
 **4. Technologies Used**
    Backend
