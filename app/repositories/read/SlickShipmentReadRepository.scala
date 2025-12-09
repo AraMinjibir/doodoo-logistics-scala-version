@@ -15,7 +15,9 @@ class SlickShipmentReadRepository(db: Database)(implicit ec: ExecutionContext)
   override def getById(id: UUID): Future[Option[Shipment]] = {
     db.run(q.filter(_.id === id).result.headOption).map(_.map(ShipmentMapper.toDomain))
   }
-
+  override def findByTrackingNumber(trackingNumber: String): Future[Option[Shipment]] = {
+    db.run(q.filter(_.trackingNumber === trackingNumber).result.headOption).map(_.map(ShipmentMapper.toDomain))
+  }
   override def listAll(): Future[Seq[Shipment]] = {
     db.run(q.result).map(_.map(ShipmentMapper.toDomain))
   }
