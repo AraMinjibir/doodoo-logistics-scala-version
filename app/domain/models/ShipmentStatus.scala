@@ -3,8 +3,8 @@ package domain.models
 sealed trait ShipmentStatus
 
 object ShipmentStatus {
-  case object Draft extends ShipmentStatus
   case object Pending extends ShipmentStatus
+  case object Created extends ShipmentStatus
   case object InTransit extends ShipmentStatus
   case object OutForDelivery extends ShipmentStatus
   case object Delivered extends ShipmentStatus
@@ -12,8 +12,8 @@ object ShipmentStatus {
 
   def fromString(value: String): ShipmentStatus =
     value match {
-      case "Draft"            => Draft
-      case "Pending"          => Pending
+      case "Pending"            => Pending
+      case "Created"          => Created
       case "InTransit"        => InTransit
       case "OutForDelivery"   => OutForDelivery
       case "Delivered"        => Delivered
@@ -23,8 +23,8 @@ object ShipmentStatus {
 
   def toString(status: ShipmentStatus): String =
     status match {
-      case Draft           => "Draft"
-      case Pending         => "Pending"
+      case Pending           => "Pending"
+      case Created         => "Created"
       case InTransit       => "InTransit"
       case OutForDelivery  => "OutForDelivery"
       case Delivered       => "Delivered"
