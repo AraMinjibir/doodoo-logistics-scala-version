@@ -1,5 +1,7 @@
 package domain.models
 
+import play.api.libs.json._
+
 sealed trait ShipmentStatus
 
 object ShipmentStatus {
@@ -12,7 +14,7 @@ object ShipmentStatus {
 
   def fromString(value: String): ShipmentStatus =
     value match {
-      case "Pending"            => Pending
+      case "Pending"          => Pending
       case "Created"          => Created
       case "InTransit"        => InTransit
       case "OutForDelivery"   => OutForDelivery
@@ -24,10 +26,22 @@ object ShipmentStatus {
   def toString(status: ShipmentStatus): String =
     status match {
       case Pending           => "Pending"
-      case Created         => "Created"
-      case InTransit       => "InTransit"
-      case OutForDelivery  => "OutForDelivery"
-      case Delivered       => "Delivered"
-      case Cancelled       => "Cancelled"
+      case Created           => "Created"
+      case InTransit         => "InTransit"
+      case OutForDelivery    => "OutForDelivery"
+      case Delivered         => "Delivered"
+      case Cancelled         => "Cancelled"
     }
+
+  // JSON FORMAT
+  implicit val format: Format[ShipmentStatus] = new Format[ShipmentStatus] {
+    override def writes(status: ShipmentStatus): JsValue =
+      JsString(ShipmentStatus.toString(status))
+
+    override def reads(json: JsValue): JsResult[ShipmentStatus] =
+      json match {
+        case JsString(value) => JsSuccess(ShipmentStatus.fromString(value))
+        case _               => JsError("ShipmentStatus must be a string")
+      }
+  }
 }
