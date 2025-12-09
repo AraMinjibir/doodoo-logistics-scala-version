@@ -21,5 +21,5 @@ final case class ShipmentRow(
                               estimatedDeliveryDate: Option[Instant],
                               createdAt: Instant,
                               cost: BigDecimal,
-                              historyJson: Option[String] // store tracking history as JSON string (optional)
+                              history: Option[String] // store tracking history as JSON string (optional)
                             )
