@@ -1,70 +1,91 @@
 package infrastructure.persistence.tables
 
-import infrastructure.persistence.models.ShipmentRow
 import slick.jdbc.PostgresProfile.api._
 import slick.lifted.Tag
-import play.api.libs.json.Json
-import domain.models.{ShipmentStatus, TrackingEvent}
 
 import java.time.Instant
 import java.util.UUID
+import play.api.libs.json.Json
+import domain.models.{Address, ShipmentStatus, TrackingEvent}
+import infrastructure.persistence.models.ShipmentRow
 
 class ShipmentsTable(tag: Tag) extends Table[ShipmentRow](tag, "shipments") {
 
-  //  MappedColumnType for serialize history  JSON.
-  implicit val trackingEventFormat = Json.format[TrackingEvent]
-  implicit val seqTrackingEventColumnType =
-    MappedColumnType.base[Seq[TrackingEvent], String](
-      events => Json.toJson(events).toString(),
-      str => if (str == null || str.isEmpty) Seq.empty else Json.parse(str).as[Seq[TrackingEvent]]
-    )
-
-  implicit val shipmentStatusColumnType =
-    MappedColumnType.base[ShipmentStatus, String](
-      status => status.toString,
-      str => ShipmentStatus.fromString(str)
-    )
+  import ShipmentsTable._
 
   def id = column[UUID]("id", O.PrimaryKey)
   def trackingNumber = column[Option[String]]("tracking_number")
   def senderName = column[String]("sender_name")
   def recipientName = column[String]("recipient_name")
-  def recipientAddress = column[String]("recipient_address")
+  def recipientAddress = column[Address]("recipient_address")
   def recipientContact = column[String]("recipient_contact")
-  def weight = column[Double]("weight")
-  def length = column[Double]("length")
-  def width = column[Double]("width")
-  def height = column[Double]("height")
+  def weight = column[BigDecimal]("weight")
+  def length = column[BigDecimal]("length")
+  def width = column[BigDecimal]("width")
+  def height = column[BigDecimal]("height")
   def contents = column[String]("contents")
   def status = column[ShipmentStatus]("status")
   def estimatedDeliveryDate = column[Option[Instant]]("estimated_delivery_date")
   def createdAt = column[Instant]("created_at")
   def cost = column[BigDecimal]("cost")
-  def history = column[Option[String]]("history") // persisted as JSON string
+  def history = column[String]("history")
 
-  def * = (
-    id,
-    trackingNumber,
-    senderName,
-    recipientName,
-    recipientAddress,
-    recipientContact,
-    weight,
-    length,
-    width,
-    height,
-    contents,
-    status,
-    estimatedDeliveryDate,
-    createdAt,
-    cost,
-    history
-  ) <> (
-    (ShipmentRow.apply _).tupled,
-    ShipmentRow.unapply
-  )
+
+  def * =
+    (
+      id,
+      trackingNumber,
+      senderName,
+      recipientName,
+      recipientAddress,
+      recipientContact,
+      weight,
+      length,
+      width,
+      height,
+      contents,
+      status,
+      estimatedDeliveryDate,
+      createdAt,
+      cost,
+      history
+    ) <> ((ShipmentRow.apply _).tupled, ShipmentRow.unapply)
 }
 
 object ShipmentsTable {
+
   val table = TableQuery[ShipmentsTable]
+
+
+  implicit val trackingEventFormat = Json.format[TrackingEvent]
+
+  // JSON → String mapping for history
+  implicit val seqTrackingEventColumnType: BaseColumnType[Seq[TrackingEvent]] =
+    MappedColumnType.base[Seq[TrackingEvent], String](
+      seq => Json.toJson(seq).toString(),
+      json =>
+        if (json == null || json.isEmpty) Seq.empty
+        else Json.parse(json).as[Seq[TrackingEvent]]
+    )
+
+  // Enum mapping for ShipmentStatus
+  implicit val shipmentStatusColumnType: BaseColumnType[ShipmentStatus] =
+    MappedColumnType.base[ShipmentStatus, String](
+      _.toString,
+      str =>
+        ShipmentStatus
+          .fromString(str)
+          .getOrElse(
+            throw new IllegalArgumentException(s"Unknown ShipmentStatus: $str")
+          )
+    )
+
+  // Address JSON
+  implicit val addressFormat = Json.format[Address]
+
+  implicit val addressColumnType: BaseColumnType[Address] =
+    MappedColumnType.base[Address, String](
+      addr => Json.toJson(addr).toString(),
+      json => Json.parse(json).as[Address]
+    )
 }

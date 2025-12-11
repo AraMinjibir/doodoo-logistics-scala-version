@@ -1,51 +1,54 @@
 package mappers
 
-import api.dto.{CreateShipmentDto, ShipmentDto}
-import domain.models._
+import api.dto.{CreateShipmentDto, RecipientDto, ShipmentResponseDto}
+import domain.models.{ShipmentStatus, _}
 import infrastructure.persistence.models.ShipmentRow
+import api.dto.{DimensionsDto, PackageDetailsDto, TrackingEventDto}
 
 import java.time.Instant
 import java.util.UUID
-
+import play.api.libs.json.Json
 object ShipmentMapper {
 
-
   // DTO → DOMAIN
-
   def toDomain(dto: CreateShipmentDto): Shipment = {
     val now = Instant.now()
-
+    val locationString: String = s"${dto.recipient.address.street}, ${dto.recipient.address.city}, ${dto.recipient.address.state}"
     Shipment(
       id = UUID.randomUUID(),
       trackingNumber = None,
       senderName = dto.senderName,
       recipient = Recipient(
-        name = dto.recipientName,
-        address = dto.recipientAddress,
-        contact = dto.recipientContact
+        name = dto.recipient.name,
+        address = dto.recipient.address,
+        contact = dto.recipient.contact
       ),
       packageDetails = PackageDetails(
-        weight = dto.weight,
-        dimensions = Dimensions(dto.length, dto.width, dto.height),
-        contents = dto.contents
+        weight = dto.packageDetails.weight,
+        dimensions = Dimensions(
+          length = dto.packageDetails.dimensions.length,
+          width = dto.packageDetails.dimensions.width,
+          height = dto.packageDetails.dimensions.height
+        ),
+        contents = dto.packageDetails.contents
       ),
       status = ShipmentStatus.Created,
       estimatedDeliveryDate = None,
       createdAt = now,
-      cost = BigDecimal(0),  // If you have cost in DTO, map it here
+      cost = BigDecimal(0),  // Or use your cost calculation
       history = Seq(
         TrackingEvent(
-          timestamp = now,
           status = ShipmentStatus.Created,
-          location = Some(dto.recipientAddress)
+          timestamp = now,
+          location = Some(locationString)
         )
       )
+
     )
   }
 
 
   // DOMAIN → ROW
-
   def toRow(domain: Shipment): ShipmentRow = {
     ShipmentRow(
       id = domain.id,
@@ -54,32 +57,23 @@ object ShipmentMapper {
       recipientName = domain.recipient.name,
       recipientAddress = domain.recipient.address,
       recipientContact = domain.recipient.contact,
-      weight = domain.packageDetails.weight,
-      length = domain.packageDetails.dimensions.length,
-      width = domain.packageDetails.dimensions.width,
-      height = domain.packageDetails.dimensions.height,
+      weight = domain.packageDetails.weight.toDouble,
+      length = domain.packageDetails.dimensions.length.toDouble,
+      width = domain.packageDetails.dimensions.width.toDouble,
+      height = domain.packageDetails.dimensions.height.toDouble,
       contents = domain.packageDetails.contents,
       status = domain.status,
       estimatedDeliveryDate = domain.estimatedDeliveryDate,
       createdAt = domain.createdAt,
       cost = domain.cost,
-      history =
-        if (domain.history.isEmpty)
-          None
-        else Some(play.api.libs.json.Json.toJson(domain.history).toString())
+      history = domain.history.toString
     )
   }
 
 
   // ROW → DOMAIN
 
-  def toDomain(row: ShipmentRow): Shipment = {
-
-    val history: Seq[TrackingEvent] =
-      row.history
-        .map(jsonStr => play.api.libs.json.Json.parse(jsonStr).as[Seq[TrackingEvent]])
-        .getOrElse(Seq.empty)
-
+  def fromRow(row: ShipmentRow): Shipment = {
     Shipment(
       id = row.id,
       trackingNumber = row.trackingNumber,
@@ -91,37 +85,67 @@ object ShipmentMapper {
       ),
       packageDetails = PackageDetails(
         weight = row.weight,
-        dimensions = Dimensions(row.length, row.width, row.height),
+        dimensions = Dimensions(
+          length = row.length,
+          width = row.width,
+          height = row.height
+        ),
         contents = row.contents
       ),
       status = row.status,
       estimatedDeliveryDate = row.estimatedDeliveryDate,
       createdAt = row.createdAt,
       cost = row.cost,
-      history = history
+      history = Json.parse(row.history).as[Seq[TrackingEvent]]    )
+  }
+
+
+  // DOMAIN → RESPONSE DTO ----------------------------------------------
+
+  def toDto(domain: Shipment): ShipmentResponseDto = {
+    ShipmentResponseDto(
+      id = domain.id,
+      trackingNumber = domain.trackingNumber,
+      senderName = domain.senderName,
+      recipient = toRecipientDto(domain.recipient),
+      packageDetails =toPackageDetailsDto(domain.packageDetails),
+      status = domain.status,
+      estimatedDeliveryDate = domain.estimatedDeliveryDate,
+      createdAt = domain.createdAt,
+      cost = domain.cost,
+      history = domain.history.map(toTrackingEventDto)
+    )
+  }
+
+  def toRecipientDto(domainRecipient: domain.models.Recipient): api.dto.RecipientDto = {
+    RecipientDto(
+      name = domainRecipient.name,
+      address = domainRecipient.address,
+      contact = domainRecipient.contact
     )
   }
 
 
-  // DOMAIN → DTO
+  def toDimensionsDto(domainDimensions: domain.models.Dimensions): api.dto.DimensionsDto = {
+    DimensionsDto(
+      length = domainDimensions.length,
+      width = domainDimensions.width,
+      height = domainDimensions.height
+    )
+  }
+  def toPackageDetailsDto(domainPackage: domain.models.PackageDetails): api.dto.PackageDetailsDto = {
+    PackageDetailsDto(
+      weight = domainPackage.weight,
+      dimensions = toDimensionsDto(domainPackage.dimensions),
+      contents = domainPackage.contents
+    )
+  }
 
-  def toDto(domain: Shipment): ShipmentDto = {
-    ShipmentDto(
-      id = domain.id,
-      trackingNumber = domain.trackingNumber,
-      senderName = domain.senderName,
-      recipientName = domain.recipient.name,
-      recipientAddress = domain.recipient.address,
-      recipientContact = domain.recipient.contact,
-      weight = domain.packageDetails.weight,
-      length = domain.packageDetails.dimensions.length,
-      width = domain.packageDetails.dimensions.width,
-      height = domain.packageDetails.dimensions.height,
-      contents = domain.packageDetails.contents,
-      status = domain.status.toString,
-      estimatedDeliveryDate = domain.estimatedDeliveryDate,
-      createdAt = domain.createdAt,
-      cost = domain.cost
+  def toTrackingEventDto(domainEvent: domain.models.TrackingEvent): api.dto.TrackingEventDto = {
+    TrackingEventDto(
+      status = ShipmentStatus.toString(domainEvent.status),
+      timestamp = domainEvent.timestamp,
+      location = domainEvent.location
     )
   }
 }
