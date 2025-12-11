@@ -2,9 +2,10 @@ package domain.models
 
 import play.api.libs.json._
 
-sealed trait ShipmentStatus
+sealed trait ShipmentStatus extends Product with Serializable
 
 object ShipmentStatus {
+
   case object Pending extends ShipmentStatus
   case object Created extends ShipmentStatus
   case object InTransit extends ShipmentStatus
@@ -12,16 +13,11 @@ object ShipmentStatus {
   case object Delivered extends ShipmentStatus
   case object Cancelled extends ShipmentStatus
 
-  def fromString(value: String): ShipmentStatus =
-    value match {
-      case "Pending"          => Pending
-      case "Created"          => Created
-      case "InTransit"        => InTransit
-      case "OutForDelivery"   => OutForDelivery
-      case "Delivered"        => Delivered
-      case "Cancelled"        => Cancelled
-      case other              => throw new IllegalArgumentException(s"Invalid shipment status: $other")
-    }
+  val values: Seq[ShipmentStatus] =
+    Seq(Pending, Created, InTransit, OutForDelivery, Delivered, Cancelled)
+
+  def fromString(value: String): Option[ShipmentStatus] =
+    values.find(toString(_) == value)
 
   def toString(status: ShipmentStatus): String =
     status match {
@@ -33,15 +29,19 @@ object ShipmentStatus {
       case Cancelled         => "Cancelled"
     }
 
-  // JSON FORMAT
   implicit val format: Format[ShipmentStatus] = new Format[ShipmentStatus] {
+
     override def writes(status: ShipmentStatus): JsValue =
       JsString(ShipmentStatus.toString(status))
 
     override def reads(json: JsValue): JsResult[ShipmentStatus] =
       json match {
-        case JsString(value) => JsSuccess(ShipmentStatus.fromString(value))
-        case _               => JsError("ShipmentStatus must be a string")
+        case JsString(value) =>
+          fromString(value)
+            .map(JsSuccess(_))
+            .getOrElse(JsError(s"Invalid shipment status: $value"))
+
+        case _ => JsError("ShipmentStatus must be a string")
       }
   }
 }

@@ -1,6 +1,6 @@
 package infrastructure.persistence.models
 
-import domain.models.ShipmentStatus
+import domain.models.{Address, ShipmentStatus}
 
 import java.time.Instant
 import java.util.UUID
@@ -10,16 +10,16 @@ final case class ShipmentRow(
                               trackingNumber: Option[String],
                               senderName: String,
                               recipientName: String,
-                              recipientAddress: String,
+                              recipientAddress: Address,
                               recipientContact: String,
-                              weight: Double,
-                              length: Double,
-                              width: Double,
-                              height: Double,
+                              weight: BigDecimal,
+                              length: BigDecimal,
+                              width: BigDecimal,
+                              height: BigDecimal,
                               contents: String,
                               status: ShipmentStatus,
                               estimatedDeliveryDate: Option[Instant],
                               createdAt: Instant,
                               cost: BigDecimal,
-                              history: Option[String] // store tracking history as JSON string (optional)
+                              history: String
                             )

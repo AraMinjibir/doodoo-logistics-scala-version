@@ -4,11 +4,13 @@ import java.time.Instant
 import java.util.UUID
 
 // Case classes representing a  rows in DB table.
-final case class Dimensions(length: Double, width: Double, height: Double)
+final case class Dimensions(length: BigDecimal, width: BigDecimal, height: BigDecimal)
 
-final case class PackageDetails(weight: Double, dimensions: Dimensions, contents: String)
+final case class PackageDetails(weight: BigDecimal, dimensions: Dimensions, contents: String)
 
-final case class Recipient(name: String, address: String, contact: String)
+final case class Recipient(name: String, contact: String, address: Address)
+final case class Address(street: String, city: String, state: String, country: String, postalCode: String)
+
 
 final case class Shipment(
                            id: UUID,

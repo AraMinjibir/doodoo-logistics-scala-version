@@ -1,7 +1,7 @@
 package domain.services
 
 
-import api.dto.{CreateShipmentDto, ShipmentDto}
+import api.dto.{CreateShipmentDto, ShipmentResponseDto}
 import domain.models.ShipmentStatus
 
 import java.util.UUID
@@ -9,17 +9,17 @@ import scala.concurrent.Future
 
 trait ShipmentService {
 
-  def createShipment(dto: CreateShipmentDto): Future[ShipmentDto]
+  def createShipment(dto: CreateShipmentDto): Future[ShipmentResponseDto]
 
-  def getShipmentByTrackingNumber(trackingNumber: String): Future[Option[ShipmentDto]]
+  def getShipmentByTrackingNumber(trackingNumber: String): Future[Option[ShipmentResponseDto]]
 
   def updateShipmentStatus(
                             trackingNumber: String,
                             status: ShipmentStatus,
                             location: Option[String]
-                          ): Future[ShipmentDto]
+                          ): Future[ShipmentResponseDto]
 
-  def listShipments(): Future[Seq[ShipmentDto]]
+  def listShipments(): Future[Seq[ShipmentResponseDto]]
 
   def deleteShipment(id: UUID): Future[Int]
 
