@@ -8,6 +8,10 @@ import api.dto.{DimensionsDto, PackageDetailsDto, TrackingEventDto}
 import java.time.Instant
 import java.util.UUID
 import play.api.libs.json.Json
+
+trait ShipmentRowMapper {
+  def toRow(domain: Shipment): ShipmentRow // Assuming ShipmentRow is imported
+}
 object ShipmentMapper {
 
   // DTO → DOMAIN
