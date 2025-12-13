@@ -20,6 +20,7 @@ final case class ShipmentRow(
                               status: ShipmentStatus,
                               estimatedDeliveryDate: Option[Instant],
                               createdAt: Instant,
+                              updatedAt: Instant,
                               cost: BigDecimal,
                               history: String
                             )
