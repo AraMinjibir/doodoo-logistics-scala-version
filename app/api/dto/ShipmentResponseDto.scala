@@ -1,34 +1,13 @@
 package api.dto
 
-import domain.models.{Address, ShipmentStatus}
+import domain.models.ShipmentStatus
 import play.api.libs.json.{Json, OFormat}
 
 import java.time.Instant
 import java.util.UUID
 
-final case class DimensionsDto(
-                                length: BigDecimal,
-                                width: BigDecimal,
-                                height: BigDecimal
-                              )
-object DimensionsDto { implicit val format = Json.format[DimensionsDto] }
-
-final case class PackageDetailsDto(
-                                    weight: BigDecimal,
-                                    dimensions: DimensionsDto,
-                                    contents: String
-                                  )
-object PackageDetailsDto { implicit val format = Json.format[PackageDetailsDto] }
-
-final case class RecipientDto(
-                               name: String,
-                               address: Address,
-                               contact: String
-                             )
-object RecipientDto { implicit val format = Json.format[RecipientDto] }
-
 final case class TrackingEventDto(
-                                   status: String,
+                                   status: ShipmentStatus,
                                    timestamp: Instant,
                                    location: Option[String]
                                  )
