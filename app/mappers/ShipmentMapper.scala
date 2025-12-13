@@ -17,7 +17,9 @@ object ShipmentMapper {
   // DTO → DOMAIN
   def toDomain(dto: CreateShipmentDto): Shipment = {
     val now = Instant.now()
-    val locationString: String = s"${dto.recipient.address.street}, ${dto.recipient.address.city}, ${dto.recipient.address.state}"
+    val locationString: String =
+      s"${dto.recipient.address.street}, ${dto.recipient.address.city}, ${dto.recipient.address.state}"
+
     Shipment(
       id = UUID.randomUUID(),
       trackingNumber = None,
@@ -39,7 +41,8 @@ object ShipmentMapper {
       status = ShipmentStatus.Created,
       estimatedDeliveryDate = None,
       createdAt = now,
-      cost = BigDecimal(0),  // Or use your cost calculation
+      updatedAt = now,
+      cost = BigDecimal(0),
       history = Seq(
         TrackingEvent(
           status = ShipmentStatus.Created,
@@ -47,9 +50,9 @@ object ShipmentMapper {
           location = Some(locationString)
         )
       )
-
     )
   }
+
 
 
   // DOMAIN → ROW
@@ -69,6 +72,7 @@ object ShipmentMapper {
       status = domain.status,
       estimatedDeliveryDate = domain.estimatedDeliveryDate,
       createdAt = domain.createdAt,
+      updatedAt = domain.updatedAt,
       cost = domain.cost,
       history = domain.history.toString
     )
@@ -99,9 +103,12 @@ object ShipmentMapper {
       status = row.status,
       estimatedDeliveryDate = row.estimatedDeliveryDate,
       createdAt = row.createdAt,
+      updatedAt = row.updatedAt,
       cost = row.cost,
-      history = Json.parse(row.history).as[Seq[TrackingEvent]]    )
+      history = Json.parse(row.history).as[Seq[TrackingEvent]]
+    )
   }
+
 
 
   // DOMAIN → RESPONSE DTO ----------------------------------------------
@@ -147,7 +154,7 @@ object ShipmentMapper {
 
   def toTrackingEventDto(domainEvent: domain.models.TrackingEvent): api.dto.TrackingEventDto = {
     TrackingEventDto(
-      status = ShipmentStatus.toString(domainEvent.status),
+      status = domainEvent.status,
       timestamp = domainEvent.timestamp,
       location = domainEvent.location
     )
