@@ -26,7 +26,8 @@ class ShipmentsTable(tag: Tag) extends Table[ShipmentRow](tag, "shipments") {
   def contents = column[String]("contents")
   def status = column[ShipmentStatus]("status")
   def estimatedDeliveryDate = column[Option[Instant]]("estimated_delivery_date")
-  def createdAt = column[Instant]("created_at")
+  def updatedAt = column[Instant]("created_at")
+  def createdAt = column[Instant]("updated_at")
   def cost = column[BigDecimal]("cost")
   def history = column[String]("history")
 
@@ -46,7 +47,7 @@ class ShipmentsTable(tag: Tag) extends Table[ShipmentRow](tag, "shipments") {
       contents,
       status,
       estimatedDeliveryDate,
-      createdAt,
+      createdAt,updatedAt,
       cost,
       history
     ) <> ((ShipmentRow.apply _).tupled, ShipmentRow.unapply)
