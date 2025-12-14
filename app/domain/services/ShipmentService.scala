@@ -12,6 +12,8 @@ trait ShipmentService {
   def createShipment(dto: CreateShipmentDto): Future[Shipment]
 
   def getShipmentByTrackingNumber(trackingNumber: String): Future[Option[ShipmentResponseDto]]
+  def getShipmentById(id:UUID):Future[Option[ShipmentResponseDto]]
+  def getShipmentByStatus(shipmentStatus: ShipmentStatus):Future[Seq[ShipmentResponseDto]]
 
   def updateShipmentStatus(
                             trackingNumber: String,
