@@ -10,6 +10,7 @@ import mappers.ShipmentMapper
 import utilities.{CostCalculator, DateEstimator, TrackingNumberGenerator}
 
 import java.time.Instant
+import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -60,6 +61,14 @@ class ShipmentServiceImpl @Inject()(
     readRepo
       .findByTrackingNumber(trackingNumber)
       .map(_.map(ShipmentMapper.toDto))
+  }
+
+  override def getShipmentById(id: UUID): Future[Option[ShipmentResponseDto]] = {
+    readRepo.getById(id).map(_.map(ShipmentMapper.toDto))
+  }
+
+  override def getShipmentByStatus(shipmentStatus: ShipmentStatus): Future[Seq[ShipmentResponseDto]] = {
+    readRepo.getByStatus(shipmentStatus).map(_.map(ShipmentMapper.toDto))
   }
 
   // UPDATE STATUS
