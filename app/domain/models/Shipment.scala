@@ -1,5 +1,7 @@
 package domain.models
 
+import play.api.libs.json.Json
+
 import java.time.Instant
 import java.util.UUID
 
@@ -10,6 +12,7 @@ final case class PackageDetails(weight: BigDecimal, dimensions: Dimensions, cont
 
 final case class Recipient(name: String, contact: String, address: Address)
 final case class Address(street: String, city: String, state: String, country: String, postalCode: String)
+object Address { implicit val format = Json.format[Address] }
 
 
 final case class Shipment(
@@ -22,5 +25,6 @@ final case class Shipment(
                            estimatedDeliveryDate: Option[Instant],
                            createdAt: Instant,
                            cost: BigDecimal,
-                           history: Seq[TrackingEvent] = Seq.empty
+                           history: Seq[TrackingEvent] = Seq.empty,
+                           updatedAt: Instant
                          )

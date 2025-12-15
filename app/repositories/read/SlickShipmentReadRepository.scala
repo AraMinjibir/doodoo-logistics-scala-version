@@ -4,7 +4,9 @@ import scala.concurrent.{ExecutionContext, Future}
 import infrastructure.persistence.tables.ShipmentsTable
 import slick.jdbc.PostgresProfile.api._
 import mappers.ShipmentMapper
-import domain.models.Shipment
+import domain.models.{Shipment, ShipmentStatus}
+import infrastructure.persistence.tables.ShipmentsTable._
+
 import java.util.UUID
 
 
@@ -18,6 +20,11 @@ class SlickShipmentReadRepository(db: Database)(implicit ec: ExecutionContext)
       .map(_.map(ShipmentMapper.fromRow))
   }
 
+  override def getByStatus(status: ShipmentStatus): Future[Seq[Shipment]] = {
+    db.run(q.filter(_.status === status).result)
+      .map(_.map(ShipmentMapper.fromRow))
+  }
+
   override def findByTrackingNumber(trackingNumber: String): Future[Option[Shipment]] = {
     db.run(q.filter(_.trackingNumber === trackingNumber).result.headOption)
       .map(_.map(ShipmentMapper.fromRow))
@@ -27,5 +34,7 @@ class SlickShipmentReadRepository(db: Database)(implicit ec: ExecutionContext)
     db.run(q.result)
       .map(_.map(ShipmentMapper.fromRow))
   }
+
+
 }
 
