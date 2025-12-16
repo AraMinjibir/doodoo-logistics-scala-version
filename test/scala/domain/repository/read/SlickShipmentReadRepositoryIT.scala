@@ -159,8 +159,14 @@ class SlickShipmentReadRepositoryIT extends AnyWordSpec
 
   override def beforeAll(): Unit = {
     super.beforeAll()
-    // Create the schema once before all tests run
-    Await.result(db.run(ShipmentsTable.table.schema.create), 5.seconds)
+
+    // Drop the table first, then create it.
+    val setupAction = DBIO.seq(
+      ShipmentsTable.table.schema.dropIfExists,
+      ShipmentsTable.table.schema.create
+    )
+
+    Await.result(db.run(setupAction), 5.seconds)
   }
 
   override def beforeEach(): Unit = {
