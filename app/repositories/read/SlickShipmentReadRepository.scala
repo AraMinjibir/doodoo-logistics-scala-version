@@ -3,14 +3,17 @@ package repositories.read
 import scala.concurrent.{ExecutionContext, Future}
 import infrastructure.persistence.tables.ShipmentsTable
 import slick.jdbc.PostgresProfile.api._
-import mappers.ShipmentMapper
+import mappers.{ShipmentMapper, ShipmentRowMapper}
 import domain.models.{Shipment, ShipmentStatus}
 import infrastructure.persistence.tables.ShipmentsTable._
+import slick.jdbc.JdbcProfile
 
 import java.util.UUID
 
 
-class SlickShipmentReadRepository(db: Database)(implicit ec: ExecutionContext)
+class SlickShipmentReadRepository(profile: JdbcProfile,
+                                  db: JdbcProfile#Backend#Database,
+                                  mapper: ShipmentRowMapper)(implicit ec: ExecutionContext)
   extends ShipmentReadRepository {
 
   private val q = ShipmentsTable.table
