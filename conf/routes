@@ -1,0 +1,25 @@
+# --- Shipment Module ---
+
+# Create a new shipment
+POST    /shipments                          controllers.ShipmentController.createShipment
+
+# Get all shipments
+GET     /shipments                          controllers.ShipmentController.getAllShipments
+
+# Get shipments by status (Uses the PathBindable)
+GET     /shipments/status/:shipmentStatus   controllers.ShipmentController.getShipmentByStatus(shipmentStatus: domain.models.ShipmentStatus)
+
+# Get shipment by Tracking Number
+GET     /shipments/tracking/:trackingNumber controllers.ShipmentController.getShipment(trackingNumber: String)
+
+# Get shipment by UUID
+GET     /shipments/:shipmentId              controllers.ShipmentController.getShipmentById(shipmentId: java.util.UUID)
+
+# Update full shipment details
+PUT     /shipments/:shipmentId              controllers.ShipmentController.updateShipment(shipmentId: java.util.UUID)
+
+# Update only the status
+PATCH   /shipments/tracking/:trackingNumber/status    controllers.ShipmentController.updateStatus(trackingNumber: String)
+
+# Delete a shipment
+DELETE  /shipments/:shipmentId              controllers.ShipmentController.deleteShipment(shipmentId: java.util.UUID)
