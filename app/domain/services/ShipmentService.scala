@@ -11,19 +11,21 @@ trait ShipmentService {
 
   def createShipment(dto: CreateShipmentDto): Future[Shipment]
 
-  def getShipmentByTrackingNumber(trackingNumber: String): Future[Option[ShipmentResponseDto]]
-  def getShipmentById(id:UUID):Future[Option[ShipmentResponseDto]]
-  def getShipmentByStatus(shipmentStatus: ShipmentStatus):Future[Seq[ShipmentResponseDto]]
+  def getShipmentByTrackingNumber(trackingNumber: String): Future[Option[Shipment]]
+  def getShipmentById(id:UUID):Future[Option[Shipment]]
+  def getShipmentByStatus(shipmentStatus: ShipmentStatus):Future[Seq[Shipment]]
 
   def updateShipmentStatus(
                             trackingNumber: String,
                             status: ShipmentStatus,
                             location: Option[String]
-                          ): Future[ShipmentResponseDto]
+                          ): Future[Either[String, Shipment]]
 
-  def listShipments(): Future[Seq[ShipmentResponseDto]]
+  def updateShipment(shipmentId:UUID, shipment: CreateShipmentDto): Future[Either[String, Shipment]]
 
-  def deleteShipment(id: UUID): Future[Int]
+  def listShipments(): Future[Seq[Shipment]]
+
+  def deleteShipment(id: UUID): Future[Either[String, Unit]]
 
 }
 
