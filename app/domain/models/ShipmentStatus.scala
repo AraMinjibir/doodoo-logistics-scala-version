@@ -1,6 +1,7 @@
 package domain.models
 
 import play.api.libs.json._
+import play.api.mvc.PathBindable
 
 sealed trait ShipmentStatus extends Product with Serializable
 
@@ -44,4 +45,14 @@ object ShipmentStatus {
         case _ => JsError("ShipmentStatus must be a string")
       }
   }
+
+//  Path bindable for type-safe routing
+  implicit def pathBindable(implicit stringBinder: PathBindable[String]): PathBindable[ShipmentStatus] =
+    new PathBindable[ShipmentStatus] {
+      override def bind(key: String, value: String): Either[String, ShipmentStatus] = {
+        fromString(value).toRight(s"Status '$value' is not a valid ShipmentStatus")
+      }
+
+      override def unbind(key: String, value: ShipmentStatus): String = value.toString
+    }
 }
