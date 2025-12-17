@@ -1,7 +1,7 @@
 package domain.services.impl
 
 import api.dto.{CreateShipmentDto, ShipmentResponseDto}
-import domain.models.{Shipment, ShipmentStatus, TrackingEvent}
+import domain.models.{Dimensions, PackageDetails, Recipient, Shipment, ShipmentStatus, TrackingEvent}
 import domain.services.ShipmentService
 import domain.validation.ShipmentValidation
 import repositories.read.ShipmentReadRepository
@@ -57,18 +57,17 @@ class ShipmentServiceImpl @Inject()(
 
   // GET BY TRACKING NUMBER
 
-  override def getShipmentByTrackingNumber(trackingNumber: String): Future[Option[ShipmentResponseDto]] = {
+  override def getShipmentByTrackingNumber(trackingNumber: String): Future[Option[Shipment]] = {
     readRepo
       .findByTrackingNumber(trackingNumber)
-      .map(_.map(ShipmentMapper.toDto))
   }
 
-  override def getShipmentById(id: UUID): Future[Option[ShipmentResponseDto]] = {
-    readRepo.getById(id).map(_.map(ShipmentMapper.toDto))
+  override def getShipmentById(id: UUID): Future[Option[Shipment]] = {
+    readRepo.getById(id)
   }
 
-  override def getShipmentByStatus(shipmentStatus: ShipmentStatus): Future[Seq[ShipmentResponseDto]] = {
-    readRepo.getByStatus(shipmentStatus).map(_.map(ShipmentMapper.toDto))
+  override def getShipmentByStatus(shipmentStatus: ShipmentStatus): Future[Seq[Shipment]] = {
+    readRepo.getByStatus(shipmentStatus)
   }
 
   // UPDATE STATUS
@@ -76,56 +75,78 @@ class ShipmentServiceImpl @Inject()(
                                      trackingNumber: String,
                                      status: ShipmentStatus,
                                      location: Option[String]
-                                   ): Future[ShipmentResponseDto] = {
+                                   ): Future[Either[String, Shipment]] = {
 
     val now = Instant.now()
 
-    for {
-      // 1. Single Read
-      shipmentOpt <- readRepo.findByTrackingNumber(trackingNumber)
-      shipment <- shipmentOpt match {
-        case Some(s) => Future.successful(s)
-        case None =>
-          Future.failed(
-            new NoSuchElementException(
-              s"Shipment with tracking number $trackingNumber not found"
+    readRepo.findByTrackingNumber(trackingNumber).flatMap {
+      case None =>
+        Future.successful(Left(s"Shipment $trackingNumber not found"))
+
+      case Some(shipment) =>
+        validation.validateTransition(shipment.status, status) match {
+          case Left(err) =>
+            Future.successful(Left(err))
+
+          case Right(_) =>
+            val updated = shipment.copy(
+              status = status,
+              updatedAt = now,
+              history = shipment.history :+ TrackingEvent(status, now, location)
             )
-          )
-      }
 
-      // 2. Validate Transition (no future)
-      _ <- validation.validateTransition(shipment.status, status) match {
-        case Left(err)  => Future.failed(new IllegalStateException(err))
-        case Right(_)   => Future.successful(())
-      }
-
-      // 3. Modify
-      updated = shipment.copy(
-        status = status,
-        updatedAt = now,
-        history = shipment.history :+ TrackingEvent(
-          status = status,
-          timestamp = now,
-          location = location
-        )
-      )
-
-      // 4. Write Once
-      _ <- writeRepo.update(updated)
-
-    } yield ShipmentMapper.toDto(updated)   // 5. Return updated object directly
+            writeRepo.update(updated).map(_ => Right(updated))
+        }
+    }
   }
 
+  override def updateShipment(id: UUID, dto: CreateShipmentDto): Future[Either[String, Shipment]] = {
+    val now = Instant.now()
 
+    readRepo.getById(id).flatMap {
+      case None =>
+        Future.successful(Left(s"Shipment with ID $id not found"))
 
+      case Some(existing) =>
+        // 1. Create the updated Domain Model from the DTO
+        val updated = existing.copy(
+          senderName = dto.senderName,
+          recipient = Recipient(
+            name = dto.recipient.name,
+            address = dto.recipient.address,
+            contact = dto.recipient.contact
+          ),
+          packageDetails = PackageDetails(
+            weight = dto.packageDetails.weight,
+            dimensions = Dimensions(
+              length = dto.packageDetails.dimensions.length,
+              width = dto.packageDetails.dimensions.width,
+              height = dto.packageDetails.dimensions.height
+            ),
+            contents = dto.packageDetails.contents
+          ),
+          updatedAt = now
+        )
+
+        // 2. Persist and return the Domain Model
+        writeRepo.update(updated).map(_ => Right(updated))
+    }.recover {
+      case e: Exception => Left(s"Database error: ${e.getMessage}")
+    }
+  }
 
   // LIST ALL
-  override def listShipments(): Future[Seq[ShipmentResponseDto]] = {
-    readRepo.listAll().map(_.map(ShipmentMapper.toDto))
+  override def listShipments(): Future[Seq[Shipment]] = {
+    readRepo.listAll()
   }
 
     // DELETE
 
-  override def deleteShipment(id: java.util.UUID): Future[Int] =
-    writeRepo.delete(id)
-}
+  override def deleteShipment(id: UUID): Future[Either[String, Unit]] = {
+    writeRepo.delete(id).map { rowsAffected =>
+      if (rowsAffected > 0)
+        Right(())
+      else
+        Left(s"Shipment with ID $id not found or already deleted")
+    }
+  }}

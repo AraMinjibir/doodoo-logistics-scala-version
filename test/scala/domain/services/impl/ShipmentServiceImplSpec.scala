@@ -157,7 +157,7 @@ class ShipmentServiceImplSpec
       when(mockWriteRepo.update(any[Shipment]))
         .thenReturn(Future.successful(1))
 
-      val result =
+      val resultEither =
         Await.result(
           service.updateShipmentStatus(
             trackingNumber,
@@ -166,6 +166,10 @@ class ShipmentServiceImplSpec
           ),
           5.seconds
         )
+
+      resultEither.isRight shouldBe true
+
+      val result = resultEither.getOrElse(fail("Expected a Right but got a Left"))
 
       result.status shouldBe ShipmentStatus.Delivered
       result.history.last.status shouldBe ShipmentStatus.Delivered
@@ -305,7 +309,7 @@ class ShipmentServiceImplSpec
 
       val result = Await.result(service.deleteShipment(shipmentId), 5.seconds)
 
-      result shouldBe 1
+      result shouldBe Right(())
       verify(mockWriteRepo, times(1)).delete(shipmentId)
     }
 
@@ -315,7 +319,7 @@ class ShipmentServiceImplSpec
 
       val result = Await.result(service.deleteShipment(shipmentId), 5.seconds)
 
-      result shouldBe 0
+      result shouldBe Left(s"Shipment with ID $shipmentId not found or already deleted")
       verify(mockWriteRepo,times(1)).delete(shipmentId)
     }
 
