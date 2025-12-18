@@ -73,7 +73,7 @@ Operational review
 Architecture Overview (Current)
 This project is intentionally designed as a modular monolith, reflecting real production systems.
 
-|   API Clients          |
+```|   API Clients          |
 |  (Web / Mobile / Admin)|
 +-----------+------------+
             |
