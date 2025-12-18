@@ -1,21 +1,27 @@
 package repositories.read
 
+import com.google.inject.{Inject, Singleton}
+
 import scala.concurrent.{ExecutionContext, Future}
 import infrastructure.persistence.tables.ShipmentsTable
-import slick.jdbc.PostgresProfile.api._
 import mappers.{ShipmentMapper, ShipmentRowMapper}
 import domain.models.{Shipment, ShipmentStatus}
 import infrastructure.persistence.tables.ShipmentsTable._
+import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
 import java.util.UUID
 
 
-class SlickShipmentReadRepository(profile: JdbcProfile,
-                                  db: JdbcProfile#Backend#Database,
-                                  mapper: ShipmentRowMapper)(implicit ec: ExecutionContext)
+@Singleton
+class SlickShipmentReadRepository@Inject()(dbConfigProvider: DatabaseConfigProvider,
+                                           mapper: ShipmentRowMapper)
+                                          (implicit ec: ExecutionContext)
   extends ShipmentReadRepository {
+  private val dbConfig = dbConfigProvider.get[JdbcProfile]
 
+  import dbConfig.profile.api._
+  private val db = dbConfig.db
   private val q = ShipmentsTable.table
 
   override def getById(id: UUID): Future[Option[Shipment]] = {

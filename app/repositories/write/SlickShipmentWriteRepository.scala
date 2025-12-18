@@ -1,21 +1,26 @@
 package repositories.write
 
+import com.google.inject.{Inject, Singleton}
+
 import scala.concurrent.{ExecutionContext, Future}
 import slick.jdbc.JdbcProfile
 import infrastructure.persistence.tables.ShipmentsTable
 import mappers.ShipmentRowMapper
 import domain.models.Shipment
+import play.api.db.slick.DatabaseConfigProvider
 
 import java.util.UUID
 
-class SlickShipmentWriteRepository(
-                                    profile: JdbcProfile,
-                                    db: JdbcProfile#Backend#Database,
-                                    mapper: ShipmentRowMapper
-                                  )(implicit ec: ExecutionContext)
+@Singleton
+class SlickShipmentWriteRepository @Inject()(dbConfigProvider: DatabaseConfigProvider,
+                                            mapper: ShipmentRowMapper)
+                                           (implicit ec: ExecutionContext)
   extends ShipmentWriteRepository {
 
-  import profile.api._
+  private val dbConfig = dbConfigProvider.get[JdbcProfile]
+
+  import dbConfig.profile.api._
+  private val db = dbConfig.db
 
   private val q = ShipmentsTable.table
 
