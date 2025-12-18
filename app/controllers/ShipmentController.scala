@@ -1,6 +1,6 @@
 package controllers
 
-import com.google.inject.Inject
+import com.google.inject.{Inject, Singleton}
 import domain.services.impl.ShipmentServiceImpl
 import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc._
@@ -11,6 +11,7 @@ import mappers.ShipmentMapper
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
+@Singleton
 class ShipmentController @Inject()(shipmentService: ShipmentServiceImpl,
                                    cc:ControllerComponents) (implicit ec:ExecutionContext)
   extends AbstractController(cc) {

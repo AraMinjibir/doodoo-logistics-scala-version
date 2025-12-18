@@ -4,13 +4,36 @@ import api.dto.{CreateShipmentDto, RecipientDto, ShipmentResponseDto}
 import domain.models.{ShipmentStatus, _}
 import infrastructure.persistence.models.ShipmentRow
 import api.dto.{DimensionsDto, PackageDetailsDto, TrackingEventDto}
+import com.google.inject.Singleton
 
 import java.time.Instant
 import java.util.UUID
 import play.api.libs.json.Json
 
-trait ShipmentRowMapper {
-  def toRow(domain: Shipment): ShipmentRow // Assuming ShipmentRow is imported
+@Singleton
+class ShipmentRowMapper {
+  // DOMAIN → ROW
+  def toRow(domain: Shipment): ShipmentRow = {
+    ShipmentRow(
+      id = domain.id,
+      trackingNumber = domain.trackingNumber,
+      senderName = domain.senderName,
+      recipientName = domain.recipient.name,
+      recipientAddress = domain.recipient.address,
+      recipientContact = domain.recipient.contact,
+      weight = domain.packageDetails.weight.toDouble,
+      length = domain.packageDetails.dimensions.length.toDouble,
+      width = domain.packageDetails.dimensions.width.toDouble,
+      height = domain.packageDetails.dimensions.height.toDouble,
+      contents = domain.packageDetails.contents,
+      status = domain.status,
+      estimatedDeliveryDate = domain.estimatedDeliveryDate,
+      createdAt = domain.createdAt,
+      updatedAt = domain.updatedAt,
+      cost = domain.cost,
+      history = Json.toJson(domain.history).toString()
+    )
+  }
 }
 object ShipmentMapper {
 
@@ -53,32 +76,6 @@ object ShipmentMapper {
     )
   }
 
-
-
-  // DOMAIN → ROW
-  def toRow(domain: Shipment): ShipmentRow = {
-    ShipmentRow(
-      id = domain.id,
-      trackingNumber = domain.trackingNumber,
-      senderName = domain.senderName,
-      recipientName = domain.recipient.name,
-      recipientAddress = domain.recipient.address,
-      recipientContact = domain.recipient.contact,
-      weight = domain.packageDetails.weight.toDouble,
-      length = domain.packageDetails.dimensions.length.toDouble,
-      width = domain.packageDetails.dimensions.width.toDouble,
-      height = domain.packageDetails.dimensions.height.toDouble,
-      contents = domain.packageDetails.contents,
-      status = domain.status,
-      estimatedDeliveryDate = domain.estimatedDeliveryDate,
-      createdAt = domain.createdAt,
-      updatedAt = domain.updatedAt,
-      cost = domain.cost,
-      history = domain.history.toString
-    )
-  }
-
-
   // ROW → DOMAIN
 
   def fromRow(row: ShipmentRow): Shipment = {
@@ -106,12 +103,11 @@ object ShipmentMapper {
       updatedAt = row.updatedAt,
       cost = row.cost,
       history = Json.parse(row.history).as[Seq[TrackingEvent]]
+
     )
   }
 
-
-
-  // DOMAIN → RESPONSE DTO ----------------------------------------------
+  // DOMAIN → RESPONSE DTO
 
   def toDto(domain: Shipment): ShipmentResponseDto = {
     ShipmentResponseDto(
