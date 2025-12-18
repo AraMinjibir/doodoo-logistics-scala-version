@@ -96,7 +96,7 @@ This project is intentionally designed as a modular monolith, reflecting real pr
             |
 +-----------+------------+
 | PostgreSQL Database    |
-+------------------------+```
++------------------------+
 Key Design Principles
 
 Clear separation of concerns
