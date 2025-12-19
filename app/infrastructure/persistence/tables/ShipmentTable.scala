@@ -17,7 +17,11 @@ class ShipmentsTable(tag: Tag) extends Table[ShipmentRow](tag, "shipments") {
   def trackingNumber = column[Option[String]]("tracking_number")
   def senderName = column[String]("sender_name")
   def recipientName = column[String]("recipient_name")
-  def recipientAddress = column[Address]("recipient_address")
+  def recipientStreet = column[String]("recipient_street")
+  def recipientCity = column[String]("recipient_city")
+  def recipientState = column[String]("recipient_state")
+  def recipientCountry = column[String]("recipient_country")
+  def recipientPostalCode = column[String]("recipient_postal_code")
   def recipientContact = column[String]("recipient_contact")
   def weight = column[BigDecimal]("weight")
   def length = column[BigDecimal]("length")
@@ -38,7 +42,7 @@ class ShipmentsTable(tag: Tag) extends Table[ShipmentRow](tag, "shipments") {
       trackingNumber,
       senderName,
       recipientName,
-      recipientAddress,
+      (recipientStreet, recipientCity, recipientState, recipientCountry, recipientPostalCode).mapTo[Address],
       recipientContact,
       weight,
       length,
