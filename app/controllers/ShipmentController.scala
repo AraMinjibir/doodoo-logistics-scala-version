@@ -7,6 +7,7 @@ import play.api.mvc._
 import api.dto.CreateShipmentDto
 import domain.models.ShipmentStatus
 import mappers.ShipmentMapper
+import play.api.Logger
 
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
@@ -15,6 +16,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class ShipmentController @Inject()(shipmentService: ShipmentServiceImpl,
                                    cc:ControllerComponents) (implicit ec:ExecutionContext)
   extends AbstractController(cc) {
+  private val logger = Logger(classOf[ShipmentController])
 
   def createShipment: Action[JsValue] = Action.async(parse.json) { request =>
     request.body.validate[CreateShipmentDto].fold(
@@ -81,17 +83,30 @@ class ShipmentController @Inject()(shipmentService: ShipmentServiceImpl,
     }
   }
 
-  def getAllShipments: Action[AnyContent] = Action.async { implicit request =>
-    shipmentService.listShipments().map { shipments =>
-      // 1. Map the Seq[Shipment] to Seq[ShipmentResponseDto]
+  def getAllShipments(page: Int, pageSize: Int): Action[AnyContent] = Action.async { implicit request =>
+    // 1. Calculate the offset for the database
+    val offset = (page - 1) * pageSize
+
+    shipmentService.listShipments(offset, pageSize).map { shipments =>
+      // 2. Map domain models to DTOs
       val shipmentDtos = shipments.map(ShipmentMapper.toDto)
-      // 2. Wrap the DTO sequence in a Json.toJson call and return 200 OK
-      Ok(Json.toJson(shipmentDtos))
+
+      // 3. Return an "Envelope" response
+
+      Ok(Json.obj(
+        "metadata" -> Json.obj(
+          "page" -> page,
+          "pageSize" -> pageSize,
+          "count" -> shipmentDtos.size
+        ),
+        "data" -> shipmentDtos
+      ))
     }.recover {
-      case e: Exception => InternalServerError(Json.obj("error" -> "Failed to retrieve shipments"))
+      case e: Exception =>
+        logger.error("Failed to retrieve shipments from the database", e)
+        InternalServerError(Json.obj("error" -> "Failed to retrieve shipments"))
     }
   }
-
   def updateShipment(id: UUID): Action[JsValue] = Action.async(parse.json) { request =>
     request.body.validate[CreateShipmentDto].fold(
       errors => Future.successful(BadRequest(Json.obj("errors" -> JsError.toJson(errors)))),

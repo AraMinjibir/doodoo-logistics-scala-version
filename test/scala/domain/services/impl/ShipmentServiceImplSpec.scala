@@ -112,14 +112,14 @@ class ShipmentServiceImplSpec
     }
 
     "9. GET All shipments successfully" in {
-      when(mockReadRepo.listAll()).thenReturn(Future.successful(Seq(createTestShipment())))
-      val result = Await.result(service.listShipments(), 5.seconds)
+      when(mockReadRepo.listAll(0, 10)).thenReturn(Future.successful(Seq(createTestShipment())))
+      val result = Await.result(service.listShipments(0, 10), 5.seconds)
       result should have size 1
     }
 
     "10. RETURN Empty when no shipments exist" in {
-      when(mockReadRepo.listAll()).thenReturn(Future.successful(Seq.empty))
-      val result = Await.result(service.listShipments(), 5.seconds)
+      when(mockReadRepo.listAll(0, 10)).thenReturn(Future.successful(Seq.empty))
+      val result = Await.result(service.listShipments(0, 10), 5.seconds)
       result shouldBe empty
     }
 

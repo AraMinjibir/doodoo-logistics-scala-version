@@ -39,9 +39,13 @@ class SlickShipmentReadRepository@Inject()(dbConfigProvider: DatabaseConfigProvi
       .map(_.map(ShipmentMapper.fromRow))
   }
 
-  override def listAll(): Future[Seq[Shipment]] = {
-    db.run(q.result)
-      .map(_.map(ShipmentMapper.fromRow))
+ override def listAll(offset: Int, limit: Int): Future[Seq[Shipment]] = {
+    db.run(
+      q.sortBy(_.createdAt.desc) // 1. Always sort by newest first
+        .drop(offset)             // 2. Skip previous pages
+        .take(limit)              // 3. Only fetch one page's worth
+        .result
+    ).map(_.map(ShipmentMapper.fromRow))
   }
 
 

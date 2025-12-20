@@ -8,6 +8,6 @@ import java.util.UUID
 trait ShipmentReadRepository {
   def getById(id: UUID): Future[Option[Shipment]]
   def getByStatus(status:ShipmentStatus):Future[Seq[Shipment]]
-  def listAll(): Future[Seq[Shipment]]
+  def listAll(offset: Int, limit: Int): Future[Seq[Shipment]]
   def findByTrackingNumber(trackingNumber: String) : Future[Option[Shipment]]
 }
