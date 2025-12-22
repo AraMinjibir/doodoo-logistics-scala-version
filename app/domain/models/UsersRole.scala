@@ -2,6 +2,8 @@ package domain.models
 
 import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue}
 import play.api.mvc.PathBindable
+import slick.jdbc.H2Profile.MappedColumnType
+import slick.jdbc.PostgresProfile.api._
 
 sealed trait UsersRole extends Product with Serializable
 
@@ -39,4 +41,11 @@ object UsersRole {
 
       override def unbind(key: String, value: UsersRole): String = value.toString
     }
+
+  implicit val roleMapper = MappedColumnType.base[UsersRole, String](
+    e => e.toString,
+    s => UsersRole.fromString(s).getOrElse(
+      throw new IllegalArgumentException(s"Database contains invalid role: $s")
+    )
+  )
 }
