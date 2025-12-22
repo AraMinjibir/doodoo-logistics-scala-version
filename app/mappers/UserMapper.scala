@@ -2,6 +2,7 @@ package mappers
 
 import api.dto.{UsersCreationDto, UsersCreationResponse}
 import domain.models.User
+import infrastructure.persistence.models.UsersRow
 
 import java.util.UUID
 
@@ -28,6 +29,27 @@ class UserMapper {
       email = domain.email,
       phoneNumber = domain.phoneNumber,
       role = domain.role
+    )
+  }
+
+  def fromRow(row:UsersRow): User = {
+    User(
+      id = row.id,
+      name = row.name,
+      email = row.email,
+      hashPassword = row.hashPassword,
+      phoneNumber = row.phoneNumber,
+      role = row.role
+    )
+  }
+  def toRow(row:User): UsersRow = {
+    UsersRow(
+      id = row.id,
+      name = row.name,
+      email = row.email,
+      hashPassword = row.hashPassword,
+      phoneNumber = row.phoneNumber,
+      role = row.role
     )
   }
 }
