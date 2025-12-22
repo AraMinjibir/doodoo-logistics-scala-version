@@ -1,3 +1,5 @@
+package infrastructure.persistence.tables
+
 import domain.models.UsersRole
 import infrastructure.persistence.models.UsersRow
 import slick.lifted.{ProvenShape, Tag}
@@ -8,12 +10,6 @@ import java.util.UUID
 class UsersTable(tag: Tag) extends Table[UsersRow](tag,"users"){
 
 
-    implicit val roleMapper = MappedColumnType.base[UsersRole, String](
-    e => e.toString,
-    s => UsersRole.fromString(s).getOrElse(
-      throw new IllegalArgumentException(s"Database contains invalid role: $s")
-    )
-  )
   def id = column[UUID]("id", O.PrimaryKey)
   def name = column[String]("name")
   def email = column[String]("email_address", O.Unique, O.Length(254))
@@ -24,5 +20,9 @@ class UsersTable(tag: Tag) extends Table[UsersRow](tag,"users"){
    def * : ProvenShape[UsersRow] = (id,name, email,hashPassword, phoneNumber, role) <> (UsersRow.tupled , UsersRow.unapply)
 
 
+}
+
+object UsersTable {
+  val table = TableQuery[UsersTable]
 }
 
