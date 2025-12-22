@@ -109,7 +109,7 @@ class SlickShipmentReadRepositoryIT extends AnyWordSpec
 
     "listAll" should {
       "return empty list when no data exists" in {
-        val result = Await.result(readRepo.listAll(), 5.seconds)
+        val result = Await.result(readRepo.listAll(0, 10), 5.seconds)
         result shouldBe empty
       }
     }

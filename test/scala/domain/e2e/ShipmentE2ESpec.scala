@@ -73,6 +73,17 @@ class ShipmentE2ESpec
 
       getResponse.status mustBe OK
       (getResponse.json \ "status").as[String] mustBe "Created"
+
+      //    list shipments with pagination
+
+      val response = Await.result(
+        wsClient.url(s"$baseUrl?page=1&pageSize=5").get(),
+        5.seconds
+      )
+
+      response.status mustBe OK
+      val json = response.json
+      (json \ "metadata" \ "count").as[Int] must be >= 1
     }
   }
 }

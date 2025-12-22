@@ -73,7 +73,7 @@ class ShipmentApiSpec extends PlaySpec
 
       val result = route(app, FakeRequest(GET, "/shipments")).get
       status(result) mustBe OK
-      contentAsJson(result).as[JsArray].value must not be empty
+      (contentAsJson(result) \ "data").as[JsArray].value must not be empty
     }
 
     "successfully bind the URL string to a ShipmentStatus object" in {

@@ -23,8 +23,7 @@ trait ShipmentService {
 
   def updateShipment(shipmentId:UUID, shipment: CreateShipmentDto): Future[Either[String, Shipment]]
 
-  def listShipments(): Future[Seq[Shipment]]
-
+  def listShipments(offset: Int, limit: Int): Future[Seq[Shipment]]
   def deleteShipment(id: UUID): Future[Either[String, Unit]]
 
 }

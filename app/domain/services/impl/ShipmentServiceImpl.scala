@@ -136,8 +136,8 @@ class ShipmentServiceImpl @Inject()(
   }
 
   // LIST ALL
-  override def listShipments(): Future[Seq[Shipment]] = {
-    readRepo.listAll()
+  override def listShipments(offset: Int, limit: Int): Future[Seq[Shipment]] = {
+    readRepo.listAll(offset: Int, limit: Int)
   }
 
     // DELETE
