@@ -16,7 +16,7 @@ def userId = UUID.fromString("22222222-2222-2222-2222-222222222222")
  def role = UsersRole.Admin
 
 
- def createTestUser = User(
+ def createTestUser() = User(
     id = userId,
     name = name,
     email =username, hashPassword = password, phoneNumber = phone, role = role
