@@ -1,79 +1,82 @@
-DooDoo Logistics
+# DooDoo Logistics 
 
-Play Framework • Scala • PostgreSQL • REST  • WebSockets • Event Sourcing
-DooDoo Logistics is a production-ready logistics and delivery management platform inspired by real-world
-systems such as UPS, DHL, Bolt Logistics, DoorDash, and Glovo.
-This project is designed as a portfolio-grade showcase of large-scale engineering skills for backend,
-distributed systems, data engineering, and full-stack roles.
+**Play Framework • Scala • PostgreSQL • REST  • WebSockets • Event Sourcing**
+
+DooDoo Logistics is a production-oriented logistics and delivery management backend inspired by industrial-grade systems like DHL, Bolt Logistics, and FedEx. Built as a Modular Monolith, this project demonstrates how to handle complex business rules, strict state transitions, and asynchronous event processing within a maintainable and testable architecture.
+
 The project focuses on building, testing, and hardening a real backend system using industry-standard
-Scala and Play Framework practices before introducing any unnecessary complexity.
-Its primary goal is to demonstrate how a typical logistics system is designed, implemented, tested, and
-prepared for production in a realistic, non-distributed environment,
-reflecting how most systems are actually built and deployed.
-1. Problem Statement
-A typical logistics platform must reliably handle:
-Shipment creation and lifecycle management
-Tracking shipments via unique tracking numbers
-Controlled status transitions (Created → In Transit → Delivered)
-Clear separation of write and read responsibilities
-Data consistency and validation
-Audit history of shipment state changes
-Admin and support workflows
-Clear failure handling and error reporting
-Testability and maintainability
-**2. Shipment Management (Sender / Customer)
-Create shipments with full validation
-Generate unique tracking numbers
-Retrieve shipments by:
-Tracking number
-Shipment ID
-View current shipment status and history
-Receive clear error feedback for invalid or missing shipments
-Service Provider Features
-Service Providers represent delivery agents responsible for moving shipments through their lifecycle.
-Accept assigned shipments
-Update shipment status:
-Created → In Transit
-In Transit → Delivered
-Submit delivery completion details (timestamp, optional notes)
-View assigned shipments
-Access shipment history relevant to their deliveries
-Status transitions enforced strictly by business rules
-Focus: correctness of workflow, authorization boundaries, and state validation — not scale.
-Admin Features
-Admins oversee system operations and ensure data integrity.
-View all shipments in the system
-Query shipments by:
-Status
-Date range
-Tracking number
-Inspect full shipment lifecycle history
-Correct operational issues (e.g. resolve stuck shipments)
-Monitor failed or invalid state transitions
-Manage shipment records (controlled deletion / correction)
-Shipment Lifecycle & Business Rules
-Explicit domain states:
-Created
-In Transit
-Delivered
-Role-based actions:
-Senders create shipments
-Service Providers progress shipments
-Admins oversee and audit
-Invalid transitions are rejected at the service layer
-Every state change is recorded in shipment history
-Audit & History
-Full timeline of shipment state changes
-Timestamped events for each transition
-Location and metadata support
-Enables:
-Debugging
-Customer support
-Operational review
-Architecture Overview (Current)
-This project is intentionally designed as a modular monolith, reflecting real production systems.
+ Scala and Play Framework practices before introducing any unnecessary complexity.
 
-```|   API Clients          |
+Its primary goal is to demonstrate how a typical logistics system is designed, implemented, tested, and
+ prepared for production in a realistic, non-distributed environment, 
+reflecting how most systems are actually built and deployed.
+
+**1. Problem Statement**
+
+Logistics platforms must maintain 100% data consistency and operational transparency. DooDoo Logistics addresses these challenges through:
+
+Deterministic Lifecycle Management: Preventing illegal state jumps (e.g., jumping from Created to Delivered without being In Transit).
+
+Role-Based Access Control (RBAC): Defining clear boundaries between Customers, Service Providers, Support Agents, and Admins.
+
+Auditability: A permanent, timestamped history of every shipment status change.
+
+Event-Driven Notifications: Ensuring stakeholders are updated in real-time without blocking the core API performance.
+
+2. Core Capabilities by Role
+The system enforces the Principle of Least Privilege (PoLP) across four distinct roles:
+
+Customer / Sender
+• Shipment Management: Create shipments with full input validation and receive unique tracking 
+  numbers.
+
+• Visibility: Real-time tracking and access to the complete lifecycle history of their packages.
+
+Recipient (The Consignee)
+• Inbound Visibility: Track all incoming packages linked to the user's verified identity (phone/ 
+   email).
+
+• Dynamic Delivery Instructions: Provide real-time notes to Service Providers to ensure 
+  successful first-time delivery.
+
+• Delivery Confirmation: Access official Proof of Delivery (PoD) data once a shipment reaches the 
+  final state.
+
+Service Provider (Courier)
+• Logistics Progression: Responsible for moving shipments through active states (Accept, In 
+  Transit, Delivered).
+
+• Metadata Entry: Submitting delivery notes and proof-of-delivery timestamps.
+
+Support Agent (Operational Integrity)
+• Advanced Observability: Search and filter shipments by tracking number, status, or date range 
+ to resolve inquiries.
+
+• Ticket Management: Creating and managing support tickets linked to specific shipments and users.
+
+• Anomaly Detection: Identifying "stuck" shipments that have failed to progress within expected 
+  SLAs.
+
+Administrator
+• System Oversight: Full read/write access to all entities.
+
+• Operational Recovery: Authorized to perform manual state corrections and audit the entire 
+ system's health.
+
+3. Architecture & Design Patterns
+The system follows Domain-Driven Design (DDD) principles to isolate business logic from infrastructure.
+
+• Persistence Ignorance: Service layers interact with Repository traits, allowing the underlying 
+  database (PostgreSQL) to be swapped or mocked for testing.
+
+• Event-Driven Architecture (EDA): Utilizing Kafka to decouple the core logistics engine from the 
+  notification system.
+
+• Type-Safe Domain: Leveraging Scala's sealed traits and Enumeratum to ensure that only valid 
+  shipment statuses and roles can exist at compile-time.
+
+```+------------------------+
+|   API Clients          |
 |  (Web / Mobile / Admin)|
 +-----------+------------+
             |
@@ -96,91 +99,61 @@ This project is intentionally designed as a modular monolith, reflecting real pr
             |
 +-----------+------------+
 | PostgreSQL Database    |
-+------------------------+
-Key Design Principles
++------------------------+```
 
-Clear separation of concerns
+4. Technical Stack
 
-Domain logic isolated from persistence
+• Backend: Scala, Play Framework (Asynchronous/Non-blocking I/O).
 
-Repositories abstracted and mockable
+• Persistence: PostgreSQL with Slick (Type-safe SQL DSL).
 
-Services fully unit tested
+• Messaging: Apache Kafka for reliable, asynchronous notification delivery.
 
-Ready for production hardening
+• Security: BCrypt password hashing and JWT-based authentication.
 
-4. Technologies Used
-Backend
+5. Testing Strategy
+DooDoo Logistics prioritizes correctness through a comprehensive testing pyramid:
 
-Scala
+• Service-Level Unit Tests: 100% coverage of business rules and state transition logic using 
+  Mockito.
 
-Play Framework
+• Integration Tests: Verifying Repository-to-Database mapping and SQL query correctness.
 
-PostgreSQL
+• End-to-End (E2E) Tests: Full-flow verification simulating a shipment's journey from initial 
+ creation to final delivery, ensuring all layers (API, Service, Repo) work in harmony.
 
-Futures & asynchronous processing
+6. Event-Driven Notifications
+To maintain high throughput, notification logic is offloaded to Kafka:
 
-JSON APIs
+• Produce: When a shipment status changes, a StatusChanged event is published to Kafka.
 
-Testing
+• Consume: A dedicated Notification Consumer listens for these events.
 
-ScalaTest
+• Execute: The consumer triggers Email or Push notifications via external providers (e.g., 
+  SendGrid/Firebase).
 
-Mockito
+7. Roadmap & Operational Readiness
 
-Unit tests for:
+[x] Core Shipment Engine: Basic creation, tracking, and persistence.
 
-Services
+[x] RBAC Implementation: Secure boundaries for all user roles.
 
-Validation
+[x] Support Module: Ticket management and internal auditing.
 
-Error paths
+[ ] Kafka Integration: Implementation of the Event Producer and Notification Consumer.
 
-Repository and integration testing (in progress)
+[ ] Observability: Structured logging (SLF4J) and health check endpoints for production monitoring.
 
-Planned end-to-end tests
+[ ] CI/CD Pipeline: Automated GitHub Actions/GitLab CI for testing and Docker deployment.
 
-Ops (Incremental)
+8. Running the Project Locally
+Bash
 
-sbt
-
-Docker (local development)
-
-Logging & error handling (in progress)
-
-5. Testing Strategy (Current Focus)
-
-This project prioritizes testing correctness before scale.
-
-Implemented
-
-Service-level unit tests
-
-Success paths
-
-Validation failures
-
-Not-found cases
-
-Invalid state transitions
-
-Mocked repositories and dependencies
-
-Deterministic fixtures for repeatable tests
-
-Next Steps
-
-Repository tests against PostgreSQL
-
-Integration tests (API → DB)
-
-End-to-end tests for shipment workflows
-
-Production-grade error handling
-
-Logging and observability
-
-6. Running the Project
+# Clone the repository
 git clone git@gitlab.com:AraMjb/doodoo-logistics.git
-cd doodoo-logistics
+
+# Ensure PostgreSQL and Kafka are running via Docker
+docker-compose up -d
+
+# Run the Play application
 sbt run
