@@ -1,5 +1,10 @@
-package domain.validation.impl
+package domain.validation
 
-class UserValidation {
+import api.dto.{UsersCreationDto, UsersUpdateDto}
+
+trait UserValidation {
+
+  def validateUserCreation(dto: UsersCreationDto): Either[String, Unit]
+  def validateUserUpdate(dto: UsersUpdateDto): Either[String, Unit]
 
 }
