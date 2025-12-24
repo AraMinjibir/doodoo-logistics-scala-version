@@ -29,7 +29,10 @@ libraryDependencies ++= Seq(
 
   // Play Slick
   "org.playframework" %% "play-slick" % "6.2.0",
-  "org.playframework" %% "play-slick-evolutions" % "6.2.0"
+  "org.playframework" %% "play-slick-evolutions" % "6.2.0",
+
+//  BCrypt
+    "org.mindrot" % "jbcrypt" % "0.4"
 )
 
 

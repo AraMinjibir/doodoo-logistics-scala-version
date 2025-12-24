@@ -10,7 +10,16 @@ case class UsersCreationDto(
                              phoneNumber: String,
                              role:UsersRole
                            )
+case class UsersUpdateDto(
+                             name: String,
+                             email: String,
+                             phoneNumber: String,
+                             role:UsersRole
+                           )
 
 object UsersCreationDto {
   implicit val format: OFormat[UsersCreationDto] = Json.format[UsersCreationDto]
+}
+object UsersUpdateDto {
+  implicit val format: OFormat[UsersUpdateDto] = Json.format[UsersUpdateDto]
 }
