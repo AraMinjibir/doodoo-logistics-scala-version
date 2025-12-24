@@ -1,5 +1,7 @@
 package scala.domain.helpers
 
+import api.dto.{UsersCreationDto, UsersUpdateDto}
+import domain.models
 import domain.models.{User, UsersRole}
 
 import java.util.UUID
@@ -20,6 +22,15 @@ def userId = UUID.fromString("22222222-2222-2222-2222-222222222222")
     id = userId,
     name = name,
     email =username, hashPassword = password, phoneNumber = phone, role = role
+  )
+
+  def validUserCreation():UsersCreationDto = UsersCreationDto(
+    name = name,
+    email = username, hashPassword = password, phoneNumber = phone, role = role
+  )
+
+  def validUserUpdate():UsersUpdateDto = UsersUpdateDto(
+    name = name, email = username, phoneNumber = phone, role = role
   )
 
 }

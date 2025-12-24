@@ -6,16 +6,16 @@ import domain.models.{User, UsersRole}
 import domain.services.UserService
 import domain.validation.UserValidation
 import org.mindrot.jbcrypt.BCrypt
-import repositories.read.UserSlickReadRepository
-import repositories.write.SlickUserWriteRepository
+import repositories.read.UserReadRepository
+import repositories.write.UserWriteRepository
 
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class UserServiceImpl @Inject()(
-                               writeRepo:SlickUserWriteRepository,
-                               readRepo:UserSlickReadRepository,
+                               writeRepo:UserWriteRepository,
+                               readRepo:UserReadRepository,
                                validator:UserValidation)(implicit ec: ExecutionContext) extends UserService{
 
   override def createUser(dto: UsersCreationDto): Future[Either[String, User]] = {
