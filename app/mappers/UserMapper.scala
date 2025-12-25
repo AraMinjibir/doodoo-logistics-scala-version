@@ -1,6 +1,6 @@
 package mappers
 
-import api.dto.{UsersCreationDto, UsersCreationResponse}
+import api.dto.{UsersCreationDto, UserResponseDto}
 import domain.models.User
 import infrastructure.persistence.models.UsersRow
 
@@ -22,8 +22,8 @@ class UserMapper {
 
 //  Converting from Domain model to Users Creation Response
 
-  def toDto(domain:User):UsersCreationResponse = {
-    UsersCreationResponse(
+  def toDto(domain:User):UserResponseDto = {
+    UserResponseDto(
       id = domain.id,
       name = domain.name,
       email = domain.email,
