@@ -1,9 +1,8 @@
 package mappers
 
-import api.dto.{CreateShipmentDto, RecipientDto, ShipmentResponseDto}
-import domain.models.{ShipmentStatus, _}
+import api.dto.{CreateShipmentDto, DimensionsDto, PackageDetailsDto, RecipientDto, ShipmentResponseDto, TrackingEventDto}
+import domain.models._
 import infrastructure.persistence.models.ShipmentRow
-import api.dto.{DimensionsDto, PackageDetailsDto, TrackingEventDto}
 import com.google.inject.Singleton
 
 import java.time.Instant
@@ -124,7 +123,7 @@ object ShipmentMapper {
     )
   }
 
-  def toRecipientDto(domainRecipient: domain.models.Recipient): api.dto.RecipientDto = {
+  def toRecipientDto(domainRecipient: domain.models.Recipient): RecipientDto = {
     RecipientDto(
       name = domainRecipient.name,
       address = domainRecipient.address,
@@ -133,14 +132,14 @@ object ShipmentMapper {
   }
 
 
-  def toDimensionsDto(domainDimensions: domain.models.Dimensions): api.dto.DimensionsDto = {
+  def toDimensionsDto(domainDimensions: domain.models.Dimensions): DimensionsDto = {
     DimensionsDto(
       length = domainDimensions.length,
       width = domainDimensions.width,
       height = domainDimensions.height
     )
   }
-  def toPackageDetailsDto(domainPackage: domain.models.PackageDetails): api.dto.PackageDetailsDto = {
+  def toPackageDetailsDto(domainPackage: domain.models.PackageDetails): PackageDetailsDto = {
     PackageDetailsDto(
       weight = domainPackage.weight,
       dimensions = toDimensionsDto(domainPackage.dimensions),
@@ -148,7 +147,7 @@ object ShipmentMapper {
     )
   }
 
-  def toTrackingEventDto(domainEvent: domain.models.TrackingEvent): api.dto.TrackingEventDto = {
+  def toTrackingEventDto(domainEvent: domain.models.TrackingEvent): TrackingEventDto = {
     TrackingEventDto(
       status = domainEvent.status,
       timestamp = domainEvent.timestamp,
