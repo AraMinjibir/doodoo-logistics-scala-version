@@ -2,12 +2,14 @@ package api.controllers.helpers
 
 import domain.models.errors.DomainError.{EmailAlreadyTaken, UserNotFound}
 import domain.models.errors._
+import play.api.Logger
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc.Results._
 import play.api.mvc.Result
 
 trait ResultMapper {
 
+  private val logger = Logger(classOf[ResultMapper])
   /**
    * Maps a DomainError to a standard Play Result
    */
@@ -27,6 +29,14 @@ trait ResultMapper {
       "code"    -> 400,
       "message" -> "The data provided is invalid",
       "details" -> JsError.toJson(errors)
+    ))
+  }
+
+  def handleException(e: Throwable): Result = {
+    logger.error("Unexpected error occurred", e)
+    InternalServerError(Json.obj(
+      "error" -> "InternalServerError",
+      "message" -> "An unexpected error occurred. Please contact support."
     ))
   }
 }
