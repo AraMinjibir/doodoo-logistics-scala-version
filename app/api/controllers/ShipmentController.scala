@@ -1,11 +1,12 @@
-package controllers
+package api.controllers
 
+import api.dto.CreateShipmentDto
 import com.google.inject.{Inject, Singleton}
 import domain.services.impl.ShipmentServiceImpl
 import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc._
-import api.dto.CreateShipmentDto
 import domain.models.ShipmentStatus
+import domain.services.ShipmentService
 import mappers.ShipmentMapper
 import play.api.Logger
 
@@ -13,7 +14,7 @@ import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ShipmentController @Inject()(shipmentService: ShipmentServiceImpl,
+class ShipmentController @Inject()(shipmentService: ShipmentService,
                                    cc:ControllerComponents) (implicit ec:ExecutionContext)
   extends AbstractController(cc) {
   private val logger = Logger(classOf[ShipmentController])

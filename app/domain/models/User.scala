@@ -1,5 +1,7 @@
 package domain.models
 
+import play.api.libs.json.{Json, OFormat}
+
 import java.util.UUID
 
 case class User(
@@ -10,3 +12,6 @@ case class User(
                 phoneNumber: String,
                 role:UsersRole
                 )
+object User {
+  implicit val format: OFormat[User] = Json.format[User]
+}

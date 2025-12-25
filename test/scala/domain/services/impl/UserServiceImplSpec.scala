@@ -11,6 +11,8 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import repositories.read.UserReadRepository
 import repositories.write.UserWriteRepository
+import domain.models.errors.DomainError
+import domain.models.errors.DomainError._
 
 import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -62,12 +64,13 @@ class UserServiceImplSpec extends AnyWordSpec
     }
     "FAIL to create a new user when validation fails" in {
       val dto = validUserCreation()
-      when(mockValidation.validateUserCreation(any())).thenReturn(Left("Validation Error"))
+      val validationErr = ValidationError("Name cannot be empty")
+      when(mockValidation.validateUserCreation(any())).thenReturn(Left( validationErr))
 
       val result = Await.result(userService.createUser(dto), 5.seconds)
 
       // Asserting on the Left side of the Either
-      result shouldBe Left("Validation Error")
+      result shouldBe Left( validationErr)
 
       // Verify that the database was never touched after validation failed
       verify(mockReadRepo, never()).findUserByEmail(any())
@@ -117,7 +120,7 @@ class UserServiceImplSpec extends AnyWordSpec
       val result = Await.result(userService.updateUser(randomId, dto), 5.second)
 
       // Assert: Check for the error message returned by your Impl
-      result shouldBe Left(s"User with id: $randomId is not found")
+      result shouldBe Left(UserNotFound)
     }
     "Get user by id" in{
       val newUser = createTestUser()

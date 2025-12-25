@@ -1,6 +1,5 @@
 package domain.services
 
-
 import api.dto.{CreateShipmentDto, ShipmentResponseDto}
 import domain.models.{Shipment, ShipmentStatus}
 
