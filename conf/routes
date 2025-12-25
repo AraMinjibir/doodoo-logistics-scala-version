@@ -34,7 +34,7 @@ POST    /users                          api.controllers.UserController.createUse
 GET     /users                          api.controllers.UserController.findAllUsers(offset: Int ?= 1, limit: Int ?= 10)
 
 # Get users by role (Uses the PathBindable)
-GET     /users/role/:userRole   api.controllers.UserController.findUserByRole(userRole: domain.models.UserRole)
+GET     /users/role/:userRole   api.controllers.UserController.findUserByRole(userRole: domain.models.UsersRole)
 
 # Get user by UUID
 GET     /users/:userId              api.controllers.UserController.findUserById(userId: java.util.UUID)
