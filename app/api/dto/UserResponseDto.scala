@@ -12,7 +12,8 @@ case class UserResponseDto(
                                  phoneNumber: String,
                                  role:UsersRole
                                )
-object UsersCreationRespons {
+object UserResponseDto {
+
   implicit val format: OFormat[UserResponseDto] = Json.format[UserResponseDto]
 
     def fromDomain(user: domain.models.User): UserResponseDto = UserResponseDto(
