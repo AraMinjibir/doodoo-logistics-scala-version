@@ -8,12 +8,14 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.inject.guice.GuiceApplicationBuilder
+import repositories.SlickShipmentRepository
 import slick.jdbc.JdbcProfile
-import scala.domain.helpers.ShipmentTestHelpers
 
+import scala.domain.helpers.ShipmentTestHelpers
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 import java.util.UUID
+import scala.util.Success
 
 class SlickShipmentWriteRepositoryIT
   extends AnyWordSpec
@@ -35,7 +37,7 @@ class SlickShipmentWriteRepositoryIT
         "slick.dbs.default.db.password" -> ""
       ).build()
 
-  lazy val repo     = app.injector.instanceOf[SlickShipmentWriteRepository]
+  lazy val repo     = app.injector.instanceOf[SlickShipmentRepository]
   lazy val dbConfig = app.injector.instanceOf[DatabaseConfigProvider].get[JdbcProfile]
   import dbConfig.profile.api._
 
@@ -58,7 +60,7 @@ class SlickShipmentWriteRepositoryIT
         val shipment = createTestShipment() // One-liner data creation
 
         val result = Await.result(repo.create(shipment), 5.seconds)
-        result shouldBe 1
+        result shouldBe Success(1)
 
         val rows = Await.result(dbConfig.db.run(ShipmentsTable.table.result), 5.seconds)
         rows should have size 1
@@ -77,7 +79,7 @@ class SlickShipmentWriteRepositoryIT
         val result = Await.result(repo.update(updated), 5.seconds)
 
         // Assert
-        result shouldBe 1
+        result shouldBe Success(1)
         val persisted = Await.result(dbConfig.db.run(ShipmentsTable.table.filter(_.id === shipment.id).result.head), 5.seconds)
         persisted.senderName shouldBe "Updated Name"
         persisted.status shouldBe ShipmentStatus.InTransit
@@ -94,14 +96,14 @@ class SlickShipmentWriteRepositoryIT
         val result = Await.result(repo.delete(shipment.id), 5.seconds)
 
         // Assert
-        result shouldBe 1
+        result shouldBe Success(1)
         val rows = Await.result(dbConfig.db.run(ShipmentsTable.table.result), 5.seconds)
         rows shouldBe empty
       }
 
       "return 0 when deleting a non-existent shipment" in {
         val result = Await.result(repo.delete(UUID.randomUUID()), 5.seconds)
-        result shouldBe 0
+        result shouldBe Success (0)
       }
     }
   }

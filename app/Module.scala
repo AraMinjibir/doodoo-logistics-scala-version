@@ -3,27 +3,19 @@ import domain.services.{ShipmentService, UserService}
 import domain.services.impl.{ShipmentServiceImpl, UserServiceImpl}
 import domain.validation.{ShipmentValidation, UserValidation}
 import domain.validation.impl.{ShipmentValidationImpl, UserValidationImpl}
-import mappers.ShipmentRowMapper
-import repositories.read.{ShipmentReadRepository, SlickShipmentReadRepository, UserReadRepository, UserSlickReadRepository}
-import repositories.write.{ShipmentWriteRepository, SlickShipmentWriteRepository, SlickUserWriteRepository, UserWriteRepository}
+import repositories.{ShipmentRepository, SlickShipmentRepository, SlickUserRepository, UserRepository}
 import utilities.{CostCalculator, DateEstimator, Default}
 
 class Module extends AbstractModule {
   override def configure(): Unit = {
 
     // Bind Repositories
-    bind(classOf[ShipmentReadRepository]).to(classOf[SlickShipmentReadRepository])
-    bind(classOf[ShipmentWriteRepository]).to(classOf[SlickShipmentWriteRepository])
-    bind(classOf[UserReadRepository]).to(classOf[UserSlickReadRepository])
-    bind(classOf[UserWriteRepository]).to(classOf[SlickUserWriteRepository])
+    bind(classOf[ShipmentRepository]).to(classOf[SlickShipmentRepository])
+    bind(classOf[UserRepository]).to(classOf[SlickUserRepository])
 
     // Bind Services
     bind(classOf[ShipmentService]).to(classOf[ShipmentServiceImpl])
     bind(classOf[UserService]).to(classOf[UserServiceImpl])
-
-  //Bind Mapper
-
-    bind(classOf[ShipmentRowMapper]).asEagerSingleton()
 
     // Bind Validation
     bind(classOf[ShipmentValidation]).to(classOf[ShipmentValidationImpl])

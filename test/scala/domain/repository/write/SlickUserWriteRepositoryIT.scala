@@ -9,7 +9,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.inject.guice.GuiceApplicationBuilder
-import repositories.write.SlickUserWriteRepository
+import repositories.SlickUserRepository
 import slick.jdbc.JdbcProfile
 
 import scala.concurrent.duration.DurationInt
@@ -38,7 +38,7 @@ class SlickUserWriteRepositoryIT extends AnyWordSpec
         "slick.dbs.default.db.password" -> ""
       ).build()
 
- lazy val repo = app.injector.instanceOf[SlickUserWriteRepository]
+ lazy val repo = app.injector.instanceOf[SlickUserRepository]
  lazy val dbConfig = app.injector.instanceOf[DatabaseConfigProvider].get[JdbcProfile]
   lazy val mapper = app.injector.instanceOf[UserMapper]
 
@@ -64,7 +64,7 @@ class SlickUserWriteRepositoryIT extends AnyWordSpec
 
   "Slick User Write Repository" should {
     "Persist a user row into the database" in {
-      val newUser = createTestUser
+      val newUser = createTestUser()
       val newRow = mapper.toRow(newUser)
 
       // We use direct Slick action (+=) here because the H2 driver restricts
@@ -79,7 +79,7 @@ class SlickUserWriteRepositoryIT extends AnyWordSpec
 
     }
     "successfully update an existing user" in {
-      val user = createTestUser
+      val user = createTestUser()
       val row = mapper.toRow(user)
 
       // Setup: Insert initial record
@@ -100,7 +100,7 @@ class SlickUserWriteRepositoryIT extends AnyWordSpec
       affectedRows shouldBe 1
     }
     "successfully remove a user" in {
-      val user = createTestUser
+      val user = createTestUser()
       val row = mapper.toRow(user)
 
       // Setup: Seed the database

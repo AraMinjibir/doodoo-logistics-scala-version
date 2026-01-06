@@ -1,6 +1,6 @@
 package scala.domain.helpers
 
-import api.dto.{CreateShipmentDto, DimensionsDto, PackageDetailsDto, RecipientDto}
+import controllers.{CreateShipmentDto, DimensionsDto, PackageDetailsDto, RecipientDto}
 import domain.models.{Address, Dimensions, PackageDetails, Recipient, Shipment, ShipmentStatus}
 import play.api.Application
 import play.api.libs.json.{JsObject, Json}

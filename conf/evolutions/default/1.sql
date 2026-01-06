@@ -2,7 +2,8 @@
 
 CREATE TABLE shipments (
   id uuid PRIMARY KEY,
-  tracking_number TEXT,
+tracking_number TEXT,
+CONSTRAINT uq_shipments_tracking_number UNIQUE (tracking_number),
   sender_name TEXT NOT NULL,
   recipient_name TEXT NOT NULL,
   recipient_street TEXT NOT NULL,

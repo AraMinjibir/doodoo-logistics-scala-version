@@ -1,11 +1,12 @@
 package domain.validation
 
-import api.dto.{UsersCreationDto, UsersUpdateDto}
+import controllers.dto.{UsersCreationDto, UsersUpdateDto}
+import domain.models.User
 import domain.models.errors.DomainError
 
 trait UserValidation {
 
-  def validateUserCreation(dto: UsersCreationDto): Either[DomainError, Unit]
-  def validateUserUpdate(dto: UsersUpdateDto): Either[DomainError, Unit]
+  def validateUserCreation(user: User): Either[DomainError, Unit]
+  def validateUserUpdate(user: User): Either[DomainError, Unit]
 
 }

@@ -1,8 +1,8 @@
-package api.controllers
+package controllers
 
-import api.controllers.helpers.ResultMapper
-import api.dto.{UserResponseDto, UsersCreationDto, UsersUpdateDto}
 import com.google.inject.{Inject, Singleton}
+import controllers.dto.{UserResponseDto, UsersCreationDto, UsersUpdateDto}
+import controllers.helpers.ResultMapper
 import domain.models.UsersRole
 import domain.services.UserService
 import play.api.libs.json._
@@ -19,8 +19,8 @@ class UserController @Inject()( userService: UserService,
   def createUser: Action[JsValue] = Action.async(parse.json) { request =>
     request.body.validate[UsersCreationDto].fold(
       errors   => Future.successful(onValidationError(errors)),
-      userData => userService.createUser(userData).map {
-        case Right(user) => Created(Json.toJson(user))
+      userDto => userService.createUser(UsersCreationDto.toDomain(userDto)).map {
+        case Right(user) => Created(Json.toJson(UsersCreationDto.toDto(user)))
         case Left(error) => toResult(error)
       }
     ).recover { case e => handleException(e) }
@@ -51,7 +51,8 @@ class UserController @Inject()( userService: UserService,
     request.body.validate[UsersUpdateDto].fold(
       errors => Future.successful(onValidationError(errors)),
       userDetails => {
-        userService.updateUser(userId, userDetails).map{
+        val updatedDetails = UsersCreationDto.applyUpdate(userDetails)
+        userService.updateUser(userId, updatedDetails).map{
           case Right(updatedUser) => Ok(Json.toJson(UserResponseDto.fromDomain(updatedUser)))
           case Left(error) => toResult(error)
         }

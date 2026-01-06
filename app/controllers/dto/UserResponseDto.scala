@@ -1,4 +1,4 @@
-package api.dto
+package controllers.dto
 
 import domain.models.UsersRole
 import play.api.libs.json.{Json, OFormat}

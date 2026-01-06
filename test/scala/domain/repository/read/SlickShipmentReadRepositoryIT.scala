@@ -7,10 +7,9 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.inject.guice.GuiceApplicationBuilder
-import repositories.read.SlickShipmentReadRepository
-import repositories.write.SlickShipmentWriteRepository
 import slick.jdbc.JdbcProfile
 import infrastructure.persistence.tables.ShipmentsTable
+import repositories.SlickShipmentRepository
 
 import java.util.UUID
 import scala.domain.helpers.ShipmentTestHelpers
@@ -38,8 +37,7 @@ class SlickShipmentReadRepositoryIT extends AnyWordSpec
       ).build()
 
   // Repositories injected via app injector
-  lazy val readRepo  = app.injector.instanceOf[SlickShipmentReadRepository]
-  lazy val writeRepo = app.injector.instanceOf[SlickShipmentWriteRepository]
+  lazy val repo = app.injector.instanceOf[SlickShipmentRepository]
   lazy val dbConfig  = app.injector.instanceOf[DatabaseConfigProvider].get[JdbcProfile]
 
   import dbConfig.profile.api._
@@ -62,14 +60,14 @@ class SlickShipmentReadRepositoryIT extends AnyWordSpec
       "return Some(Shipment) when tracking number exists" in {
         val shipment = createTestShipment(tracking = "FIND-ME")
 
-        Await.result(writeRepo.create(shipment), 5.seconds)
-        val result = Await.result(readRepo.findByTrackingNumber("FIND-ME"), 5.seconds)
+        Await.result(repo.create(shipment), 5.seconds)
+        val result = Await.result(repo.findByTrackingNumber("FIND-ME"), 5.seconds)
 
         result.map(_.id) shouldBe Some(shipment.id)
       }
 
       "return None when tracking number does not exist" in {
-        val result = Await.result(readRepo.findByTrackingNumber("GHOST-123"), 5.seconds)
+        val result = Await.result(repo.findByTrackingNumber("GHOST-123"), 5.seconds)
         result shouldBe None
       }
     }
@@ -87,10 +85,10 @@ class SlickShipmentReadRepositoryIT extends AnyWordSpec
           status = ShipmentStatus.Delivered
         )
 
-        Await.result(writeRepo.create(inTransit), 5.seconds)
-        Await.result(writeRepo.create(delivered), 5.seconds)
+        Await.result(repo.create(inTransit), 5.seconds)
+        Await.result(repo.create(delivered), 5.seconds)
 
-        val result = Await.result(readRepo.getByStatus(ShipmentStatus.InTransit), 5.seconds)
+        val result = Await.result(repo.getByStatus(ShipmentStatus.InTransit), 5.seconds)
 
         result should have size 1
         result.head.trackingNumber shouldBe Some("T1")
@@ -100,16 +98,16 @@ class SlickShipmentReadRepositoryIT extends AnyWordSpec
     "getById" should {
       "return the shipment for a valid UUID" in {
         val shipment = createTestShipment()
-        Await.result(writeRepo.create(shipment), 5.seconds)
+        Await.result(repo.create(shipment), 5.seconds)
 
-        val result = Await.result(readRepo.getById(shipment.id), 5.seconds)
+        val result = Await.result(repo.getById(shipment.id), 5.seconds)
         result.map(_.id) shouldBe Some(shipment.id)
       }
     }
 
     "listAll" should {
       "return empty list when no data exists" in {
-        val result = Await.result(readRepo.listAll(0, 10), 5.seconds)
+        val result = Await.result(repo.listAll(0, 10), 5.seconds)
         result shouldBe empty
       }
     }

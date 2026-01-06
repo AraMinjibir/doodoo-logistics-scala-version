@@ -1,6 +1,6 @@
 package scala.domain.helpers
 
-import api.dto.{UsersCreationDto, UsersUpdateDto}
+import controllers.dto.{UsersCreationDto, UsersUpdateDto}
 import domain.models
 import domain.models.{User, UsersRole}
 

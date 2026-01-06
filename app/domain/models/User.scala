@@ -12,6 +12,13 @@ case class User(
                 phoneNumber: String,
                 role:UsersRole
                 )
+final case class UserUpdateData(
+                                 name: String,
+                                 email: String,
+                                 phoneNumber: String,
+                                 role: UsersRole
+                               )
+
 object User {
   implicit val format: OFormat[User] = Json.format[User]
 }

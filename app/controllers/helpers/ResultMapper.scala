@@ -1,6 +1,6 @@
-package api.controllers.helpers
+package controllers.helpers
 
-import domain.models.errors.DomainError.{EmailAlreadyTaken, UserNotFound}
+import domain.models.errors.DomainError.{EmailAlreadyTaken, UserNotFound, ValidationError}
 import domain.models.errors._
 import play.api.Logger
 import play.api.libs.json.{JsError, Json}
@@ -18,6 +18,7 @@ trait ResultMapper {
     case EmailAlreadyTaken         => Conflict(Json.obj("error" -> error.message))
     case DomainError.DatabaseError(c) => InternalServerError(Json.obj("error" -> "A database error occurred"))
     case DomainError.GenericError(m)  => BadRequest(Json.obj("error" -> m))
+    case ValidationError(msg) => BadRequest(Json.obj("error" -> msg))
   }
 
   /**

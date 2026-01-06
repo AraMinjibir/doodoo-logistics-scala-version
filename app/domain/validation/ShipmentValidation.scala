@@ -1,10 +1,9 @@
 package domain.validation
 
-import api.dto.CreateShipmentDto
-import domain.models.ShipmentStatus
+import domain.models.{Shipment, ShipmentStatus}
 
 trait ShipmentValidation {
-  def validateCreate(dto: CreateShipmentDto): Either[String, Unit]
+  def validateCreate(shipment: Shipment): Either[String, Unit]
 
   def validateTransition(
                           current: ShipmentStatus,

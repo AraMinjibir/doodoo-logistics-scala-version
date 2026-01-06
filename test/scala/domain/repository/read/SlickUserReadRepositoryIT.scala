@@ -8,8 +8,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.inject.guice.GuiceApplicationBuilder
-import repositories.read.UserSlickReadRepository
-import repositories.write.SlickUserWriteRepository
+import repositories.SlickUserRepository
 import slick.jdbc.JdbcProfile
 
 import scala.concurrent.duration.DurationInt
@@ -42,8 +41,7 @@ class SlickUserReadRepositoryIT extends AnyWordSpec
   // --- Dependencies ---
   // Lazy vals prevent initialization until the Guice Application has fully started
 
-  lazy val readRepo = app.injector.instanceOf[UserSlickReadRepository]
-  lazy val writeRepo = app.injector.instanceOf[SlickUserWriteRepository]
+  lazy val repo = app.injector.instanceOf[SlickUserRepository]
   lazy val mapper = app.injector.instanceOf[UserMapper]
   lazy val dbConfig = app.injector.instanceOf[DatabaseConfigProvider].get[JdbcProfile]
 
@@ -69,7 +67,7 @@ class SlickUserReadRepositoryIT extends AnyWordSpec
 
   "SlickUserReadRepository" should {
     "find user by id" in {
-      val user = createTestUser // Get a fresh user instance
+      val user = createTestUser() // Get a fresh user instance
 
       // Use the injected class instance to convert domain User to UsersRow
       val row = mapper.toRow(user)
@@ -78,7 +76,7 @@ class SlickUserReadRepositoryIT extends AnyWordSpec
       Await.result(dbConfig.db.run(UsersTable.table += row), 5.seconds)
 
       //  Query the user
-      val result = Await.result(readRepo.findUserbyId(userId), 5.seconds)
+      val result = Await.result(repo.findUserbyId(userId), 5.seconds)
 
 
       // 3. Assertions
@@ -87,21 +85,21 @@ class SlickUserReadRepositoryIT extends AnyWordSpec
       result.get.email shouldBe username
     }
     "find user by email address" in{
-      val newUser = createTestUser
+      val newUser = createTestUser()
       val row = mapper.toRow(newUser)
 
       Await.result(dbConfig.db.run(UsersTable.table += row), 5.second)
 
-      val result = Await.result(readRepo.findUserByEmail(username), 5.second)
+      val result = Await.result(repo.findUserByEmail(username), 5.second)
       result.map(_.email) shouldBe Some(newUser.email)
     }
     "find user by role" in {
-      val newUser = createTestUser
+      val newUser = createTestUser()
       val newRow = mapper.toRow(newUser)
 
       Await.result(dbConfig.db.run(UsersTable.table += newRow), 5.second)
 
-      val result = Await.result(readRepo.findUserByRole(role),5.second)
+      val result = Await.result(repo.findUserByRole(role),5.second)
       result should not be empty
 
       // Verify role mapping and filtering logic
@@ -109,8 +107,8 @@ class SlickUserReadRepositoryIT extends AnyWordSpec
       result.forall(_.role == newUser.role) shouldBe true
     }
     "list all users" in {
-      val userA = createTestUser.copy(id = java.util.UUID.randomUUID(), name = "doodoo", email = "doodoo@test.com")
-      val userB = createTestUser.copy(id = java.util.UUID.randomUUID(), name = "logistics", email = "logistics@test.com")
+      val userA = createTestUser().copy(id = java.util.UUID.randomUUID(), name = "doodoo", email = "doodoo@test.com")
+      val userB = createTestUser().copy(id = java.util.UUID.randomUUID(), name = "logistics", email = "logistics@test.com")
 
       val setup = DBIO.seq(
         UsersTable.table += mapper.toRow(userA),
@@ -119,7 +117,7 @@ class SlickUserReadRepositoryIT extends AnyWordSpec
       Await.result(dbConfig.db.run(setup), 5.seconds)
 
       // Test pagination and alphabetical sorting
-      val result = Await.result(readRepo.listAllUsers(0, 10), 5.seconds)
+      val result = Await.result(repo.listAllUsers(0, 10), 5.seconds)
 
       result should have size 2
       result.head.name shouldBe "doodoo"

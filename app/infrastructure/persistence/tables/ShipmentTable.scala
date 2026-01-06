@@ -5,7 +5,7 @@ import slick.lifted.Tag
 
 import java.time.Instant
 import java.util.UUID
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import domain.models.{Address, ShipmentStatus, TrackingEvent}
 import infrastructure.persistence.models.ShipmentRow
 
@@ -62,7 +62,7 @@ object ShipmentsTable {
   val table = TableQuery[ShipmentsTable]
 
 
-  implicit val trackingEventFormat = Json.format[TrackingEvent]
+  implicit val trackingEventFormat: OFormat[TrackingEvent] = Json.format[TrackingEvent]
 
   // JSON → String mapping for history
   implicit val seqTrackingEventColumnType: BaseColumnType[Seq[TrackingEvent]] =
@@ -86,7 +86,7 @@ object ShipmentsTable {
     )
 
   // Address JSON
-  implicit val addressFormat = Json.format[Address]
+  implicit val addressFormat: OFormat[Address] = Json.format[Address]
 
   implicit val addressColumnType: BaseColumnType[Address] =
     MappedColumnType.base[Address, String](

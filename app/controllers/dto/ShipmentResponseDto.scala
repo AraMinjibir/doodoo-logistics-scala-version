@@ -1,6 +1,6 @@
-package api.dto
+package controllers.dto
 
-import domain.models.ShipmentStatus
+import domain.models.{ShipmentStatus}
 import play.api.libs.json.{Json, OFormat}
 
 import java.time.Instant
@@ -11,8 +11,10 @@ final case class TrackingEventDto(
                                    timestamp: Instant,
                                    location: Option[String]
                                  )
-object TrackingEventDto { implicit val format = Json.format[TrackingEventDto] }
+object TrackingEventDto {
+  implicit val format: OFormat[TrackingEventDto] = Json.format[TrackingEventDto] }
 
+private [controllers]
 final case class ShipmentResponseDto(
                               id: UUID,
                               trackingNumber: Option[String],

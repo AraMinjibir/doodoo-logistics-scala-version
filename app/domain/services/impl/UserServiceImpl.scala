@@ -1,101 +1,121 @@
 package domain.services.impl
 
-import api.dto.{UsersCreationDto, UsersUpdateDto}
 import com.google.inject.{Inject, Singleton}
 import domain.models.errors.DomainError
-import domain.models.{User, UsersRole}
+import domain.models.{User, UserUpdateData, UsersRole}
 import domain.services.UserService
 import domain.validation.UserValidation
 import org.mindrot.jbcrypt.BCrypt
-import repositories.read.UserReadRepository
-import repositories.write.UserWriteRepository
 import domain.models.errors.DomainError._
+import repositories.UserRepository
+
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 @Singleton
 class UserServiceImpl @Inject()(
-                               writeRepo:UserWriteRepository,
-                               readRepo:UserReadRepository,
-                               validator:UserValidation)(implicit ec: ExecutionContext) extends UserService{
+                                 repo:UserRepository,
+                                 validator:UserValidation)(implicit ec: ExecutionContext) extends UserService{
 
-  override def createUser(dto: UsersCreationDto): Future[Either[DomainError, User]] = {
+  override def createUser(user: User): Future[Either[DomainError, User]] = {
     // 1. Structural Validation (Uses DomainError from validator)
-    validator.validateUserCreation(dto) match {
+    validator.validateUserCreation(user) match {
       case Left(error) => Future.successful(Left(error))
       case Right(_) =>
         // 2. Business Logic: Check uniqueness
-        readRepo.findUserByEmail(dto.email).flatMap {
+        repo.findUserByEmail(user.email).flatMap {
           case Some(_) => Future.successful(Left(EmailAlreadyTaken))
           case None =>
             Future {
-              val hashedPassword = BCrypt.hashpw(dto.hashPassword, BCrypt.gensalt())
+              val hashedPassword = BCrypt.hashpw(user.hashPassword, BCrypt.gensalt())
               User(
                 id = UUID.randomUUID(),
-                name = dto.name,
-                email = dto.email,
-                role = dto.role,
+                name = user.name,
+                email = user.email,
+                role = user.role,
                 hashPassword = hashedPassword,
-                phoneNumber = dto.phoneNumber
+                phoneNumber = user.phoneNumber
               )
             }.flatMap { newUser =>
-              writeRepo.createUser(newUser).map(Right(_))
+              repo.createUser(newUser).map[Either[DomainError, User]]{
+                case Success(createdUser) => Right(createdUser)
+                case Failure(ex) => Left(DomainError.DatabaseError(ex.getMessage))
+              }
             }
         }
     }
   }
 
-  override def getUserById(userId: UUID): Future[Option[User]] = readRepo.findUserbyId(userId)
+  override def getUserById(userId: UUID): Future[Option[User]] = repo.findUserbyId(userId)
 
-  override def getUserByEmail(email: String): Future[Option[User]] = readRepo.findUserByEmail(email)
+  override def getUserByEmail(email: String): Future[Option[User]] = repo.findUserByEmail(email)
 
-  override def getUserByRole(userRole: UsersRole): Future[Seq[User]] = readRepo.findUserByRole(userRole)
+  override def getUserByRole(userRole: UsersRole): Future[Seq[User]] = repo.findUserByRole(userRole)
 
-  override def getAllUsers(offset: Int, limit: Int): Future[Seq[User]] = readRepo.listAllUsers(offset, limit)
+  override def getAllUsers(offset: Int, limit: Int): Future[Seq[User]] = repo.listAllUsers(offset, limit)
 
-  override def updateUser(userId: UUID, dto: UsersUpdateDto): Future[Either[DomainError, User]] = {
-    readRepo.findUserbyId(userId).flatMap {
+  override def updateUser(
+                           userId: UUID,
+                           user:UserUpdateData
+                         ): Future[Either[DomainError, User]] = {
+
+    repo.findUserbyId(userId).flatMap {
       case None =>
-        Future.successful(Left(UserNotFound): Either[DomainError, User])
+        Future.successful(Left(UserNotFound))
 
       case Some(existingUser) =>
-        validator.validateUserUpdate(dto) match {
+        val updatedUser = existingUser.copy(
+          name = user.name,
+          email = user.email,
+          phoneNumber = user.phoneNumber,
+          role = user.role
+        )
+
+        validator.validateUserUpdate(updatedUser) match {
           case Left(error) =>
-            Future.successful(Left(error): Either[DomainError, User])
+            Future.successful(Left(error))
 
           case Right(_) =>
-            val emailChanged = dto.email != existingUser.email
-            val emailCheck = if (emailChanged) readRepo.findUserByEmail(dto.email) else Future.successful(None)
+            val emailCheck =
+              if (updatedUser.email != existingUser.email)
+                repo.findUserByEmail(updatedUser.email)
+              else
+                Future.successful(None)
 
             emailCheck.flatMap {
               case Some(_) =>
-                Future.successful(Left(EmailAlreadyTaken): Either[DomainError, User])
+                Future.successful(Left(EmailAlreadyTaken))
+
               case None =>
-                val updatedUser = existingUser.copy(
-                  name = dto.name,
-                  email = dto.email,
-                  phoneNumber = dto.phoneNumber,
-                  role = dto.role
-                )
-                writeRepo.updateUser(updatedUser).map(_ => Right(updatedUser): Either[DomainError, User])
+                repo.updateUser(updatedUser).map {
+                  case Success(1) => Right(updatedUser)
+                  case Success(0) => Left(DatabaseError(UserNotFound.message))
+                  case Failure(ex) => Left(DatabaseError(ex.getMessage))
+                }
             }
         }
     }.recover {
-      // Explicitly cast the recover result as well
-      case e: Exception => Left(DatabaseError(e.getMessage)): Either[DomainError, User]
+      case e =>
+        Left(DatabaseError(e.getMessage))
     }
   }
 
   override def deleteUser(userId: UUID): Future[Either[DomainError, User]] = {
-    readRepo.findUserbyId(userId).flatMap {
+    repo.findUserbyId(userId).flatMap {
       case None => Future.successful(Left(UserNotFound))
       case Some(user) =>
-        writeRepo.deleteUser(userId).map {
-          case n if n > 0 => Right(user)
-          case _          => Left(GenericError("Delete failed: User may have already been removed"))
+        repo.deleteUser(userId).map {
+          case Success(0) =>
+            Left(DomainError.GenericError("Delete failed: user not found"))
+
+          case Success(_) =>
+            Right(user)
+
+          case Failure(ex) =>
+            Left(DomainError.DatabaseError(ex.getMessage))
         }
-    }.recover {
-      case e: Exception => Left(DatabaseError(e.getMessage))
+
     }
   }
 }
