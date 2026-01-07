@@ -4,7 +4,7 @@ import domain.models.UsersRole.ServiceProvider
 import domain.services.impl.UserServiceImpl
 import domain.validation.UserValidation
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{reset, verify, when, never}
+import org.mockito.Mockito.{never, reset, verify, when}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -17,6 +17,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, Future}
 import scala.domain.helpers.UserTestHelpers
+import scala.util.Success
 
 class UserServiceImplSpec extends AnyWordSpec
   with Matchers
@@ -49,7 +50,7 @@ class UserServiceImplSpec extends AnyWordSpec
 
       // 3. Mock Write Repo to return a User object
       val expectedUser = createTestUser()
-      when(mockRepo.createUser(any())).thenReturn(Future.successful(expectedUser))
+      when(mockRepo.createUser(any())).thenReturn(Future.successful(Success(expectedUser)))
 
       // Act
       val result = Await.result(userService.createUser(dto), 5.seconds)
@@ -96,7 +97,7 @@ class UserServiceImplSpec extends AnyWordSpec
       when(mockRepo.findUserByEmail(any())).thenReturn(Future.successful(None))
 
       // 4. Mock the Write Repo to return success
-      when(mockRepo.updateUser(any())).thenReturn(Future.successful(1))
+      when(mockRepo.updateUser(any())).thenReturn(Future.successful(Success(1)))
 
       // Act
       val result = Await.result(userService.updateUser(id, updateDto), 5.seconds)
@@ -191,7 +192,7 @@ class UserServiceImplSpec extends AnyWordSpec
       when(mockRepo.findUserbyId(id)).thenReturn(Future.successful(Some(user)))
 
       // 2. Stub the WRITE operation: Simulate 1 row deleted
-      when(mockRepo.deleteUser(id)).thenReturn(Future.successful(1))
+      when(mockRepo.deleteUser(id)).thenReturn(Future.successful(Success(1)))
 
       // Act
       val result = Await.result(userService.deleteUser(id), 5.seconds)
@@ -206,7 +207,7 @@ class UserServiceImplSpec extends AnyWordSpec
     "RETURN Fail when user isn't deleted" in{
       val wrongId = UUID.fromString("33333333-3333-3333-3333-333333333333")
       when(mockRepo.findUserbyId(any())).thenReturn(Future.successful(None))
-      when(mockRepo.deleteUser(any())).thenReturn(Future.successful(0))
+      when(mockRepo.deleteUser(any())).thenReturn(Future.successful(Success(0)))
 
       val result = Await.result(userService.deleteUser(wrongId), 5.second)
       result.isLeft shouldBe true

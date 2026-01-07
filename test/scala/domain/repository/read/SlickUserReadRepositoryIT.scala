@@ -1,7 +1,8 @@
 package scala.domain.repository.read
 
+import infrastructure.persistence.models.UsersRow
 import infrastructure.persistence.tables.UsersTable
-import mappers.UserMapper
+import mappers.UserRowMapper
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -42,7 +43,7 @@ class SlickUserReadRepositoryIT extends AnyWordSpec
   // Lazy vals prevent initialization until the Guice Application has fully started
 
   lazy val repo = app.injector.instanceOf[SlickUserRepository]
-  lazy val mapper = app.injector.instanceOf[UserMapper]
+  lazy val mapper = app.injector.instanceOf[UserRowMapper]
   lazy val dbConfig = app.injector.instanceOf[DatabaseConfigProvider].get[JdbcProfile]
 
   import dbConfig.profile.api._

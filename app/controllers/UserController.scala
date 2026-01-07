@@ -61,7 +61,7 @@ class UserController @Inject()( userService: UserService,
   }
   def deleteUser(userId:UUID): Action[AnyContent] = Action.async{implicit request =>
     userService.deleteUser(userId).map{
-      case Right(deletedUser) => Ok(Json.toJson(deletedUser))
+      case Right(deletedUser) => Ok(Json.toJson(UserResponseDto.fromDomain(deletedUser)))
       case Left(error) => toResult(error)
     }.recover { case e => handleException(e) }
   }

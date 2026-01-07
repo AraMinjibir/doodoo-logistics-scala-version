@@ -1,9 +1,10 @@
 package controllers.dto
 
 import domain.models.UsersRole
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{Format, Json, OFormat}
 
 import java.util.UUID
+
 
 case class UserResponseDto(
                                   id:UUID,
@@ -13,6 +14,9 @@ case class UserResponseDto(
                                  role:UsersRole
                                )
 object UserResponseDto {
+
+  implicit val usersRoleFormat: Format[UsersRole] =
+    controllers.json.UsersRoleJson.format
 
   implicit val format: OFormat[UserResponseDto] = Json.format[UserResponseDto]
 

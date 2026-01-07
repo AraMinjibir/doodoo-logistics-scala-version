@@ -2,8 +2,9 @@ package repositories
 
 import com.google.inject.{Inject, Singleton}
 import domain.models.{User, UsersRole}
-import infrastructure.persistence.models.UsersRow
+import infrastructure.persistence.tables.UsersTable._
 import infrastructure.persistence.tables.UsersTable
+import mappers.UserRowMapper
 import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
@@ -13,7 +14,7 @@ import scala.util.Try
 
 @Singleton
 class SlickUserRepository @Inject()(databaseConfigProvider: DatabaseConfigProvider,
-                                    mapper:UsersRow)(implicit ec: ExecutionContext) extends UserRepository
+                                    mapper:UserRowMapper)(implicit ec: ExecutionContext) extends UserRepository
 {
   // Load the JDBC profile (PostgreSQL)
   private val dbConfig = databaseConfigProvider.get[JdbcProfile]

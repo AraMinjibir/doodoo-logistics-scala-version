@@ -5,7 +5,7 @@ import slick.lifted.Tag
 
 import java.time.Instant
 import java.util.UUID
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{Format, Json, OFormat}
 import domain.models.{Address, ShipmentStatus, TrackingEvent}
 import infrastructure.persistence.models.ShipmentRow
 
@@ -61,6 +61,8 @@ object ShipmentsTable {
 
   val table = TableQuery[ShipmentsTable]
 
+  implicit val shipmentStatusleFormat: Format[ShipmentStatus] =
+    controllers.json.ShipmentStatusJson.format
 
   implicit val trackingEventFormat: OFormat[TrackingEvent] = Json.format[TrackingEvent]
 

@@ -1,8 +1,9 @@
 package scala.domain.repository.write
 
 import domain.models.UsersRole.Admin
+import infrastructure.persistence.models.UsersRow
 import infrastructure.persistence.tables.UsersTable
-import mappers.UserMapper
+import mappers.UserRowMapper
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -40,7 +41,7 @@ class SlickUserWriteRepositoryIT extends AnyWordSpec
 
  lazy val repo = app.injector.instanceOf[SlickUserRepository]
  lazy val dbConfig = app.injector.instanceOf[DatabaseConfigProvider].get[JdbcProfile]
-  lazy val mapper = app.injector.instanceOf[UserMapper]
+  lazy val mapper = app.injector.instanceOf[UserRowMapper]
 
   import dbConfig.profile.api._
 

@@ -19,19 +19,6 @@ object UsersRole {
 
   def toString(role: UsersRole):String = role.toString
 
-  implicit val format: Format[UsersRole] = new Format[UsersRole]{
-    override def writes(role:UsersRole):JsValue = JsString(UsersRole.toString(role))
-
-    override def reads(json: JsValue): JsResult[UsersRole] = json match {
-      case JsString(value) =>
-        fromString(value)
-          .map(JsSuccess(_))
-          .getOrElse(JsError(s"Invalid user role: $value"))
-
-      case _ => JsError("User role must be a string")
-    }
-  }
-
   //  Path bindable for type-safe routing
   implicit def pathBindable(implicit stringBinder: PathBindable[String]): PathBindable[UsersRole] =
     new PathBindable[UsersRole] {
@@ -42,10 +29,4 @@ object UsersRole {
       override def unbind(key: String, value: UsersRole): String = value.toString
     }
 
-  implicit val roleMapper = MappedColumnType.base[UsersRole, String](
-    e => e.toString,
-    s => UsersRole.fromString(s).getOrElse(
-      throw new IllegalArgumentException(s"Database contains invalid role: $s")
-    )
-  )
 }

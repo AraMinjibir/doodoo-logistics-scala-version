@@ -16,6 +16,25 @@ private[controllers] object DimensionsDto {
   implicit val format: OFormat[DimensionsDto] = Json.format[DimensionsDto]
 }
 
+case class AddressDto(
+                       street: String,
+                       city: String,
+                       state: String,
+                       country: String,
+                       postalCode: String
+                     )
+
+private[controllers] object AddressDto {
+  def fromDomain(address: Address): AddressDto =
+    AddressDto(
+      street = address.street,
+      city = address.city,
+      state = address.state,
+      country = address.country,
+      postalCode = address.postalCode
+    )
+  implicit val format: OFormat[AddressDto] = Json.format[AddressDto]
+}
 private[controllers] final case class PackageDetailsDto(
                                     weight: BigDecimal,
                                     dimensions: DimensionsDto,
@@ -27,17 +46,9 @@ private[controllers] object PackageDetailsDto {
 
 private[controllers] final case class RecipientDto(
                                name: String,
-                               address: Address,
+                               address: AddressDto,
                                contact: String
-                             ) {
-  def toRecipientDto(domainRecipient: domain.models.Recipient): RecipientDto = {
-    RecipientDto(
-      name = domainRecipient.name,
-      address = domainRecipient.address,
-      contact = domainRecipient.contact
-    )
-  }
-}
+                             )
 private[controllers] object RecipientDto {
   implicit val format: OFormat[RecipientDto] = Json.format[RecipientDto]
 }
@@ -98,7 +109,13 @@ private[controllers] object CreateShipmentDto {
       senderName = dto.senderName,
       recipient = Recipient(
         name = dto.recipient.name,
-        address = dto.recipient.address,
+        address = Address(
+          street = dto.recipient.address.street,
+          city = dto.recipient.address.city,
+          state = dto.recipient.address.state,
+          country = dto.recipient.address.country,
+          postalCode = dto.recipient.address.postalCode
+        ),
         contact = dto.recipient.contact
       ),
       packageDetails = PackageDetails(
@@ -142,7 +159,7 @@ private[controllers] object CreateShipmentDto {
   def toRecipientDto(domainRecipient: domain.models.Recipient): RecipientDto = {
     RecipientDto(
       name = domainRecipient.name,
-      address = domainRecipient.address,
+      address = AddressDto.fromDomain(domainRecipient.address),
       contact = domainRecipient.contact
     )
   }
@@ -167,5 +184,7 @@ private[controllers] object CreateShipmentDto {
       location = domainEvent.location
     )
   }
+
 }
+
 

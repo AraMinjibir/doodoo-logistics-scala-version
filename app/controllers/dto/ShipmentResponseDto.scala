@@ -1,17 +1,20 @@
 package controllers.dto
 
-import domain.models.{ShipmentStatus}
-import play.api.libs.json.{Json, OFormat}
+import domain.models.ShipmentStatus
+import play.api.libs.json.{Format, Json, OFormat}
 
 import java.time.Instant
 import java.util.UUID
+import controllers.json.ShipmentStatusJson._
 
-final case class TrackingEventDto(
+private[controllers] final case class TrackingEventDto(
                                    status: ShipmentStatus,
                                    timestamp: Instant,
                                    location: Option[String]
                                  )
-object TrackingEventDto {
+private[controllers] object TrackingEventDto {
+  implicit val shipmentStatusleFormat: Format[ShipmentStatus] =
+    controllers.json.ShipmentStatusJson.format
   implicit val format: OFormat[TrackingEventDto] = Json.format[TrackingEventDto] }
 
 private [controllers]
@@ -28,6 +31,10 @@ final case class ShipmentResponseDto(
                               history: Seq[TrackingEventDto]
                             )
 
-object ShipmentResponseDto {
+private[controllers] object ShipmentResponseDto {
+  implicit val shipmentStatusleFormat: Format[ShipmentStatus] =
+    controllers.json.ShipmentStatusJson.format
   implicit val format: OFormat[ShipmentResponseDto] = Json.format[ShipmentResponseDto]
 }
+
+

@@ -1,7 +1,7 @@
 package controllers.dto
 
 import domain.models.{User, UserUpdateData, UsersRole}
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{Format, Json, OFormat}
 
 import java.util.UUID
 
@@ -20,6 +20,9 @@ private[controllers]  case class UsersUpdateDto(
                            )
 
 object UsersCreationDto {
+  implicit val usersRoleFormat: Format[UsersRole] =
+    controllers.json.UsersRoleJson.format
+
   //  Converting from UsersCreationDto to Domin
   def toDomain(dto:UsersCreationDto):User = {
     User(
@@ -57,5 +60,7 @@ object UsersCreationDto {
   implicit val format: OFormat[UsersCreationDto] = Json.format[UsersCreationDto]
 }
 object UsersUpdateDto {
+  implicit val usersRoleFormat: Format[UsersRole] =
+    controllers.json.UsersRoleJson.format
   implicit val format: OFormat[UsersUpdateDto] = Json.format[UsersUpdateDto]
 }

@@ -1,8 +1,4 @@
 package domain.models
-
-import infrastructure.persistence.models.ShipmentRow
-import play.api.libs.json.{Json, OFormat}
-
 import java.time.Instant
 import java.util.UUID
 
@@ -13,9 +9,7 @@ final case class PackageDetails(weight: BigDecimal, dimensions: Dimensions, cont
 
 final case class Recipient(name: String, contact: String, address: Address)
 final case class Address(street: String, city: String, state: String, country: String, postalCode: String)
-object Address {
-  implicit val format: OFormat[Address] = Json.format[Address]
-}
+
 
 
 final case class Shipment(

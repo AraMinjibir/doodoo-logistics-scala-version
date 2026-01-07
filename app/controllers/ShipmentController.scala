@@ -5,11 +5,11 @@ import dto.CreateShipmentDto
 import controllers.helpers.ResultMapper
 import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc._
-import domain.models. ShipmentStatus
+import domain.models.ShipmentStatus
+import controllers.json.ShipmentStatusJson._
 import domain.services.ShipmentService
 import play.api.Logger
 
-import java.time.Instant
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 

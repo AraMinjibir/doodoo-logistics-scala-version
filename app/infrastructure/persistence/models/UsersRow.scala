@@ -11,25 +11,4 @@ case class UsersRow(
                      hashPassword: String,
                      phoneNumber: String,
                      role:UsersRole
-                   ) {
-  def fromRow(row:UsersRow): User = {
-    User(
-      id = row.id,
-      name = row.name,
-      email = row.email,
-      hashPassword = row.hashPassword,
-      phoneNumber = row.phoneNumber,
-      role = row.role
-    )
-  }
-  def toRow(row:User): UsersRow = {
-    UsersRow(
-      id = row.id,
-      name = row.name,
-      email = row.email,
-      hashPassword = row.hashPassword,
-      phoneNumber = row.phoneNumber,
-      role = row.role
-    )
-  }
-}
+                   )

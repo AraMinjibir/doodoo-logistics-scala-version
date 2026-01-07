@@ -3,6 +3,7 @@ import domain.services.{ShipmentService, UserService}
 import domain.services.impl.{ShipmentServiceImpl, UserServiceImpl}
 import domain.validation.{ShipmentValidation, UserValidation}
 import domain.validation.impl.{ShipmentValidationImpl, UserValidationImpl}
+import mappers.{ShipmentRowMapper, UserRowMapper}
 import repositories.{ShipmentRepository, SlickShipmentRepository, SlickUserRepository, UserRepository}
 import utilities.{CostCalculator, DateEstimator, Default}
 
@@ -16,6 +17,11 @@ class Module extends AbstractModule {
     // Bind Services
     bind(classOf[ShipmentService]).to(classOf[ShipmentServiceImpl])
     bind(classOf[UserService]).to(classOf[UserServiceImpl])
+
+  //Bind Mapper
+
+    bind(classOf[ShipmentRowMapper]).asEagerSingleton()
+    bind(classOf[UserRowMapper]).asEagerSingleton()
 
     // Bind Validation
     bind(classOf[ShipmentValidation]).to(classOf[ShipmentValidationImpl])
