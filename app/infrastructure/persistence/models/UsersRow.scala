@@ -1,6 +1,6 @@
 package infrastructure.persistence.models
 
-import domain.models.{User, UsersRole}
+import domain.models. UsersRole
 
 import java.util.UUID
 

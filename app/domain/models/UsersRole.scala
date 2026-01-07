@@ -1,9 +1,7 @@
 package domain.models
 
-import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue}
+
 import play.api.mvc.PathBindable
-import slick.jdbc.H2Profile.MappedColumnType
-import slick.jdbc.PostgresProfile.api._
 
 sealed trait UsersRole extends Product with Serializable
 

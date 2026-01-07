@@ -1,7 +1,6 @@
 package infrastructure.persistence.models
 
-import domain.models.{Address, Dimensions, PackageDetails, Recipient, Shipment, ShipmentStatus, TrackingEvent}
-import play.api.libs.json.Json
+import domain.models.{Address, ShipmentStatus, TrackingEvent}
 
 import java.time.Instant
 import java.util.UUID
