@@ -1,8 +1,8 @@
 package domain.validation
 
 import controllers.dto.{UsersCreationDto, UsersUpdateDto}
+import domain.errors.DomainError
 import domain.models.User
-import domain.models.errors.DomainError
 
 trait UserValidation {
 

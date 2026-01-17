@@ -1,10 +1,10 @@
 package domain.services.impl
+import domain.errors.{DatabaseError, DomainError}
 import domain.models.{Dimensions, PackageDetails, Recipient, Shipment, ShipmentStatus, TrackingEvent}
 import domain.services.ShipmentService
 import domain.validation.ShipmentValidation
 import repositories.ShipmentRepository
 import utilities.{CostCalculator, DateEstimator}
-
 import java.time.Instant
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
@@ -22,13 +22,17 @@ class ShipmentServiceImpl @Inject()(
 
   // CREATE
 
-  override def createShipment(shipment: Shipment): Future[Either[String,Shipment]] =
+  override def createShipment(shipment: Shipment): Future[Either[DomainError,Shipment]] =
     repo
       .create(shipment)
       .map{
-          case Success(rows) if rows > 0 => Right(shipment)
-          case Success(_) => Left("Shipment creation failed: no rows inserted")
-          case Failure(ex) => Left(ex.getMessage)
+          case Success(_)  => Right(shipment)
+          case Failure(ex) =>
+            ex.printStackTrace()
+            ex match {
+              case SQLCOnstraintViolation =>
+            }
+            Left(DatabaseError("ops!"))
         }
 
 

@@ -1,12 +1,13 @@
-package domain.models.errors
+package domain.errors
 
 sealed trait DomainError {
   def message: String
 }
 
-object DomainError {
+
   case object UserNotFound extends DomainError {
     val message = "The requested user does not exist."
+    val msg = "ooh! typo"
   }
   case object EmailAlreadyTaken extends DomainError {
     val message = "This email is already registered in our system."
@@ -16,4 +17,7 @@ object DomainError {
   }
   case class ValidationError(message: String) extends DomainError
   case class GenericError(message: String) extends DomainError
+
+class DuplicateShipment extends DomainError {
+ override var message = "Duplicate shipment"
 }

@@ -9,7 +9,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
-import domain.models.errors.DomainError._
+import domain.errors.DomainError._
 import repositories.UserRepository
 
 import java.util.UUID

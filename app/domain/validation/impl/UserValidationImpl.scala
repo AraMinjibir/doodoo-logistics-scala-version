@@ -1,8 +1,8 @@
 package domain.validation.impl
 
 import controllers.dto.{UsersCreationDto, UsersUpdateDto}
+import domain.errors.DomainError
 import domain.models.User
-import domain.models.errors.DomainError
 import domain.validation.UserValidation
 import play.api.data.validation.ValidationError
 

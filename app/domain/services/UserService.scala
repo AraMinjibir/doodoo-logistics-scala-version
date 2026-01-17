@@ -1,7 +1,7 @@
 package domain.services
 
 import controllers.dto.{UsersCreationDto, UsersUpdateDto}
-import domain.models.errors.DomainError
+import domain.errors.DomainError
 import domain.models.{User, UserUpdateData, UsersRole}
 
 import java.util.UUID

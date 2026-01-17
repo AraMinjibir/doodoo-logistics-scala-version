@@ -1,12 +1,12 @@
 package domain.services.impl
 
 import com.google.inject.{Inject, Singleton}
-import domain.models.errors.DomainError
+import domain.errors.DomainError
 import domain.models.{User, UserUpdateData, UsersRole}
 import domain.services.UserService
 import domain.validation.UserValidation
 import org.mindrot.jbcrypt.BCrypt
-import domain.models.errors.DomainError._
+import DomainError._
 import repositories.UserRepository
 
 import java.util.UUID

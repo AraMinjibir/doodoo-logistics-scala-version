@@ -1,7 +1,7 @@
 package controllers.helpers
 
-import domain.models.errors.DomainError.{EmailAlreadyTaken, UserNotFound, ValidationError}
-import domain.models.errors._
+import domain.errors.DomainError
+import domain.errors._
 import play.api.Logger
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc.Results._
@@ -16,15 +16,16 @@ trait ResultMapper {
   def toResult(error: DomainError): Result = error match {
     case UserNotFound              => NotFound(Json.obj("error" -> error.message))
     case EmailAlreadyTaken         => Conflict(Json.obj("error" -> error.message))
-    case DomainError.DatabaseError(c) => InternalServerError(Json.obj("error" -> "A database error occurred"))
-    case DomainError.GenericError(m)  => BadRequest(Json.obj("error" -> m))
+    case DatabaseError(c) => InternalServerError(Json.obj("error" -> "A database error occurred"))
+    case GenericError(m)  => BadRequest(Json.obj("error" -> m))
     case ValidationError(msg) => BadRequest(Json.obj("error" -> msg))
   }
 
   /**
    * Standardizes JSON validation error responses
    */
-  def onValidationError(errors: scala.collection.Seq[(play.api.libs.json.JsPath, scala.collection.Seq[play.api.libs.json.JsonValidationError])]): Result = {
+  def onValidationError(errors: scala.collection.Seq[(play.api.libs.json.JsPath, scala.collection.
+  Seq[play.api.libs.json.JsonValidationError])]): Result = {
     BadRequest(Json.obj(
       "status"  -> "Error",
       "code"    -> 400,

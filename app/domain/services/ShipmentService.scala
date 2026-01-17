@@ -1,5 +1,6 @@
 package domain.services
 
+import domain.errors.DomainError
 import domain.models.{Shipment, ShipmentStatus}
 
 import java.util.UUID
@@ -7,7 +8,7 @@ import scala.concurrent.Future
 
 trait ShipmentService {
 
-  def createShipment(shipment: Shipment): Future[Either[String, Shipment]]
+  def createShipment(shipment: Shipment): Future[Either[DomainError, Shipment]]
 
   def getShipmentByTrackingNumber(trackingNumber: String): Future[Option[Shipment]]
   def getShipmentById(id:UUID):Future[Option[Shipment]]
