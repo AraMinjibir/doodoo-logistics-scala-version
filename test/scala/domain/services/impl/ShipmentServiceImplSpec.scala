@@ -12,7 +12,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import repositories.ShipmentRepository
-import utilities.{CostCalculator, DateEstimator}
+import utilities.DateEstimator
 
 import java.util.UUID
 import scala.domain.helpers.ShipmentTestHelpers

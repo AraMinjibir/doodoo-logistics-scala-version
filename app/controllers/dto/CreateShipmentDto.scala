@@ -1,6 +1,5 @@
 package controllers.dto
 
-import controllers.dto.CreateShipmentDto.toDomain
 import domain.models._
 import play.api.libs.json.{Json, OFormat}
 
@@ -55,92 +54,60 @@ private[controllers] object RecipientDto {
 
 private[controllers] final case class CreateShipmentDto(
                                     senderName: String,
-                                    recipient: RecipientDto,
-                                    packageDetails: PackageDetailsDto,
+//                                  Address
+                                    streetName: String,
+                                    streetNumber: String,
+                                    city: String,
+                                    state: String,
+                                    country: String,
+                                    postalCode: String,
+                                    contact: String,
+//                             Dimension
+                                    weight:Double,
+                                    length:Double,
+                                    width:Double,
+                                    height:Double,
+                                    contents: String
 
                                   ) {
- def toShipment = toDomain(this)
+ def toShipment : Shipment = {
+    val packageDetails = PackageDetails(
+      weightInKilograms = this.weight,
+      dimensions = Dimensions(
+        lengthInCentimeters = this.length,
+        widthInCentimeters  = this.width,
+        heightInCentimeters = this.height
+      ),
+      contents = this.contents
+    )
+    val  recipient = Recipient(
+      name = this.streetName,
+      address = Address(
+        street = this.streetNumber,
+        city = this.city,
+        state = this.state,
+        country = this.country,
+        postalCode = this.postalCode
+      ),
+      contact = this.contact
+    )
+
+    Shipment(
+      senderName = this.senderName,
+      recipient = recipient,
+      packageDetails = packageDetails,
+    )
+  }
 
 
 
 
 
-//  override def createShipment(shipment: Shipment): Future[Either[String,Shipment]] = {
-//    validation.validateCreate(dto) match {
-//      case Left(err) => Future.failed(new IllegalArgumentException(err))
-//      case Right(_) =>
-//        val now = Instant.now()
-//        val base = ShipmentMapper.toDomain(dto)
-//        val trackingNumber = TrackingNumberGenerator.generate()
-//
-//        val initialEvent = TrackingEvent(
-//          status = ShipmentStatus.Created,
-//          timestamp = now,
-//          location = None
-//        )
-//
-//        val shipmentToSave =
-//          base.copy(
-//            trackingNumber = Some(trackingNumber),
-//            createdAt = now,
-//            history = Seq(initialEvent),
-//            cost = costCalculator.calculate(base.packageDetails, base.recipient),
-//            estimatedDeliveryDate = dateEstimator.estimate(base.recipient)
-//          )
-//
-//        repo.create(shipmentToSave).map{
-//          case Success(_) => Right(shipmentToSave)
-//          case Failure(ex) => Left(ex.getMessage)
-//        }
-//    }
-//  }
 }
 private[controllers] object CreateShipmentDto {
   implicit val format: OFormat[CreateShipmentDto] = Json.format[CreateShipmentDto]
 
-  def toDomain(dto: CreateShipmentDto): Shipment = {
-    val now = Instant.now()
-    val locationString: String =
-      s"${dto.recipient.address.street}, ${dto.recipient.address.city}, ${dto.recipient.address.state}"
 
-    Shipment(
-      id = UUID.randomUUID(),
-      trackingNumber = None,
-      senderName = dto.senderName,
-      recipient = Recipient(
-        name = dto.recipient.name,
-        address = Address(
-          street = dto.recipient.address.street,
-          city = dto.recipient.address.city,
-          state = dto.recipient.address.state,
-          country = dto.recipient.address.country,
-          postalCode = dto.recipient.address.postalCode
-        ),
-        contact = dto.recipient.contact
-      ),
-      packageDetails = PackageDetails(
-        weight = dto.packageDetails.weight,
-        dimensions = Dimensions(
-          length = dto.packageDetails.dimensions.length,
-          width = dto.packageDetails.dimensions.width,
-          height = dto.packageDetails.dimensions.height
-        ),
-        contents = dto.packageDetails.contents
-      ),
-      status = ShipmentStatus.Created,
-      estimatedDeliveryDate = None,
-      createdAt = now,
-      updatedAt = now,
-      cost = BigDecimal(0),
-      history = Seq(
-        TrackingEvent(
-          status = ShipmentStatus.Created,
-          timestamp = now,
-          location = Some(locationString)
-        )
-      )
-    )
-  }
 
   def toDto(domain: Shipment): ShipmentResponseDto = {
     ShipmentResponseDto(

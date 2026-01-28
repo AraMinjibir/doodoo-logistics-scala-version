@@ -1,10 +1,10 @@
 package domain.services.impl
-import domain.errors.{DatabaseError, DomainError}
+import controllers.helpers.ResultMapper
+import domain.errors.DomainError
 import domain.models.{Dimensions, PackageDetails, Recipient, Shipment, ShipmentStatus, TrackingEvent}
 import domain.services.ShipmentService
-import domain.validation.ShipmentValidation
 import repositories.ShipmentRepository
-import utilities.{CostCalculator, DateEstimator}
+
 import java.time.Instant
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
@@ -14,26 +14,19 @@ import scala.util.{Failure, Success}
 @Singleton
 class ShipmentServiceImpl @Inject()(
                                      repo: ShipmentRepository,
-                                     validation: ShipmentValidation,
-                                     costCalculator: CostCalculator,
-                                     dateEstimator: DateEstimator,
-                                   )(implicit ec: ExecutionContext) extends ShipmentService {
+                                   )(implicit ec: ExecutionContext) extends ShipmentService with ResultMapper {
 
 
   // CREATE
 
-  override def createShipment(shipment: Shipment): Future[Either[DomainError,Shipment]] =
+  override def createShipment(shipment: Shipment): Future[Either[DomainError,Shipment]] = {
     repo
       .create(shipment)
       .map{
           case Success(_)  => Right(shipment)
-          case Failure(ex) =>
-            ex.printStackTrace()
-            ex match {
-              case SQLCOnstraintViolation =>
-            }
-            Left(DatabaseError("ops!"))
+          case Failure(ex) => Left(mapInsertException(ex))
         }
+  }
 
 
   // GET BY TRACKING NUMBER
@@ -100,11 +93,11 @@ class ShipmentServiceImpl @Inject()(
             contact = shipment.recipient.contact
           ),
           packageDetails = PackageDetails(
-            weight = shipment.packageDetails.weight,
+            weightInKilograms = shipment.packageDetails.weightInKilograms,
             dimensions = Dimensions(
-              length = shipment.packageDetails.dimensions.length,
-              width = shipment.packageDetails.dimensions.width,
-              height = shipment.packageDetails.dimensions.height
+              lengthInCentimeters = shipment.packageDetails.dimensions.lengthInCentimeters,
+              widthInCentimeters = shipment.packageDetails.dimensions.widthInCentimeters,
+              heightInCentimeters = shipment.packageDetails.dimensions.heightInCentimeters
             ),
             contents = shipment.packageDetails.contents
           ),

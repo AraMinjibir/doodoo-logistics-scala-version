@@ -28,7 +28,7 @@ class ShipmentController @Inject()(shipmentService: ShipmentService,
         shipmentService.createShipment(shipmentDto.toShipment)
           .map {
             case Right(shipment) => Created(Json.toJson(CreateShipmentDto.toDto(shipment)))
-            case Left(error) => BadRequest(error)
+            case Left(error) => toResult(error)
           }
           .recover {
             case e => handleException(e)

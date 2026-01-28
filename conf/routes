@@ -24,27 +24,3 @@ PATCH   /shipments/tracking/:trackingNumber/status   controllers.ShipmentControl
 # Delete a shipment
 DELETE  /shipments/:shipmentId             controllers.ShipmentController.deleteShipment(shipmentId: java.util.UUID)
 
-
-# --- User Management Module ---
-
-# Create a new user
-POST    /users                         controllers.UserController.createUser
-
-# Get all users
-GET     /users                         controllers.UserController.findAllUsers(offset: Int ?= 1, limit: Int ?= 10)
-
-# Get users by role (Uses the PathBindable)
-GET     /users/role/:userRole       controllers.UserController.findUserByRole(userRole: domain.models.UsersRole)
-
-# Get user by UUID
-GET     /users/:userId             controllers.UserController.findUserById(userId: java.util.UUID)
-
-# Get user by email
-GET     /users/:email           controllers.UserController.findUserByEmail(email: String)
-
-# Update  user details
-PUT     /users/:userId             controllers.UserController.updateUserDetails(userId: java.util.UUID)
-
-
-# Delete a user
-DELETE  /users/:userId             controllers.UserController.deleteUser(userId: java.util.UUID)
