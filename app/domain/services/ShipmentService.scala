@@ -18,9 +18,9 @@ trait ShipmentService {
                             trackingNumber: String,
                             status: ShipmentStatus,
                             location: Option[String]
-                          ): Future[Either[String, Shipment]]
+                          ): Future[Either[DomainError, Shipment]]
 
-  def updateShipment(shipmentId:UUID, shipment: Shipment): Future[Either[String, Shipment]]
+  def updateShipment(shipmentId:UUID, shipment: Shipment): Future[Either[DomainError, Shipment]]
 
   def listShipments(offset: Int, limit: Int): Future[Seq[Shipment]]
   def deleteShipment(id: UUID): Future[Either[String, Unit]]

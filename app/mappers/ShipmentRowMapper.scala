@@ -19,7 +19,11 @@ class ShipmentRowMapper {
       trackingNumber = domain.trackingNumber,
       senderName = domain.senderName,
       recipientName = domain.recipient.name,
-      recipientAddress = domain.recipient.address,
+      recipientStreet = domain.recipient.address.street,
+      recipientCity = domain.recipient.address.city,
+      recipientState = domain.recipient.address.state,
+      recipientCountry = domain.recipient.address.country,
+      recipientPostalCode = domain.recipient.address.postalCode,
       recipientContact = domain.recipient.contact,
       weight = domain.packageDetails.weightInKilograms,
       length = domain.packageDetails.dimensions.lengthInCentimeters,
@@ -27,11 +31,10 @@ class ShipmentRowMapper {
       height = domain.packageDetails.dimensions.heightInCentimeters,
       contents = domain.packageDetails.contents,
       status = domain.status,
-      estimatedDeliveryDate = domain.estimatedDeliveryDate,
+      estimatedDeliveryDate = domain.deliveryDateEstimate,
       createdAt = domain.createdAt,
       updatedAt = domain.updatedAt,
-      cost = domain.cost,
-      history = Json.toJson(domain.history).toString()
+      cost = domain.cost
     )
   }
   def fromRow(row: ShipmentRow): Shipment = {
@@ -45,21 +48,17 @@ class ShipmentRowMapper {
         contact = row.recipientContact
       ),
       packageDetails = PackageDetails(
-        weight = row.weight,
+        weightInKilograms = row.weight,
         dimensions = Dimensions(
-          length = row.length,
-          width = row.width,
-          height = row.height
+        widthInCentimeters = row.width,
+          lengthInCentimeters = row.length,
+          heightInCentimeters = row.height
         ),
         contents = row.contents
       ),
       status = row.status,
-      estimatedDeliveryDate = row.estimatedDeliveryDate,
       createdAt = row.createdAt,
       updatedAt = row.updatedAt,
-      cost = row.cost,
-      history = Json.parse(row.history).as[Seq[TrackingEvent]]
-
     )
   }
 

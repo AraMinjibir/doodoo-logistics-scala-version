@@ -21,6 +21,7 @@ trait ResultMapper {
     case GenericError(m)  => BadRequest(Json.obj("error" -> m))
     case ValidationError(msg) => BadRequest(Json.obj("error" -> msg))
     case ShipmentCreationError(msg) => BadRequest(Json.obj("error" -> msg))
+    case UpdateShipmentStatusError(msg) => BadRequest(Json.obj("error" -> msg))
   }
 
   /**

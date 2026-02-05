@@ -5,7 +5,6 @@ import play.api.libs.json.{Format, Json, OFormat}
 
 import java.time.Instant
 import java.util.UUID
-import controllers.json.ShipmentStatusJson._
 
 private[controllers] final case class TrackingEventDto(
                                    status: ShipmentStatus,
@@ -28,7 +27,6 @@ final case class ShipmentResponseDto(
                               estimatedDeliveryDate: Option[Instant],
                               createdAt: Instant,
                               cost: BigDecimal,
-                              history: Seq[TrackingEventDto]
                             )
 
 private[controllers] object ShipmentResponseDto {

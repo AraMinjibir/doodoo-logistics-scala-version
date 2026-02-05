@@ -100,11 +100,11 @@ class ShipmentController @Inject()(shipmentService: ShipmentService,
       shipmentData => {
         val updatedDomain = CreateShipmentDto.toDomain(shipmentData)
         shipmentService.updateShipment(id,updatedDomain).map{
-          case Left(msg) if msg.contains("not found") =>
-            NotFound(Json.obj("message" -> msg))
+          case Left(err) if err.message.contains("not found") =>
+            NotFound(Json.obj("message" -> err.message))
 
           case Left(msg) =>
-            BadRequest(Json.obj("message" -> msg))
+            BadRequest(Json.obj("message" -> msg.message))
           case Right(updated) => Ok(Json.toJson(CreateShipmentDto.toDto(updated)))
         }
         }).recover {
@@ -124,12 +124,12 @@ class ShipmentController @Inject()(shipmentService: ShipmentService,
       newStatus => {
         // 2. Call the Service
         shipmentService.updateShipmentStatus(trackingNumber, newStatus, location).map {
-          case Left(error) if error.contains("not found") =>
-            NotFound(Json.obj("error" -> error))
+          case Left(error) if error.message.contains("not found") =>
+            NotFound(Json.obj("error" -> error.message))
 
           case Left(error) =>
             // This captures validation failures like illegal transitions
-            BadRequest(Json.obj("error" -> error))
+            BadRequest(Json.obj("error" -> error.message))
 
           case Right(updatedShipment) =>
             // 3. Return the updated domain model as a DTO

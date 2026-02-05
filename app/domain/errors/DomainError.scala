@@ -1,5 +1,9 @@
 package domain.errors
 
+import domain.models.ShipmentStatus
+
+import java.util.UUID
+
 sealed trait DomainError {
   def message: String
 }
@@ -57,6 +61,25 @@ case class DatabaseError(cause: String) extends DomainError {
 case class ShipmentCreationError(cause: String) extends DomainError {
   val message = s"Unable to create the shipment: $cause"
 }
+
+case class UpdateShipmentStatusError(cause: String) extends DomainError {
+  val message = s"Unable to update the shipment: $cause"
+}
+final case class ShipmentNotFound(trackingNumber: String) extends DomainError {
+  val message = s"Shipment $trackingNumber not found"
+}
+final case class ShipmentNotFoundById(id: UUID) extends DomainError {
+  val message = s"Shipment with id: $id not found"
+}
+
+final case class InvalidShipmentStatusTransition(
+                                                  from: ShipmentStatus,
+                                                  to: ShipmentStatus
+                                                ) extends DomainError {
+  val message =
+    s"Invalid shipment status transition from ${ShipmentStatus.toString(from)} to ${ShipmentStatus.toString(to)}"
+}
+
 
   case class ValidationError(message: String) extends DomainError
   case class GenericError(message: String) extends DomainError

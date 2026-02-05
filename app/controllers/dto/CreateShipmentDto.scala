@@ -54,7 +54,6 @@ private[controllers] object RecipientDto {
 
 private[controllers] final case class CreateShipmentDto(
                                     senderName: String,
-//                                  Address
                                     streetName: String,
                                     streetNumber: String,
                                     city: String,
@@ -62,7 +61,6 @@ private[controllers] final case class CreateShipmentDto(
                                     country: String,
                                     postalCode: String,
                                     contact: String,
-//                             Dimension
                                     weight:Double,
                                     length:Double,
                                     width:Double,
@@ -117,10 +115,9 @@ private[controllers] object CreateShipmentDto {
       recipient = toRecipientDto(domain.recipient),
       packageDetails =toPackageDetailsDto(domain.packageDetails),
       status = domain.status,
-      estimatedDeliveryDate = domain.estimatedDeliveryDate,
+      estimatedDeliveryDate = domain.deliveryDateEstimate,
       createdAt = domain.createdAt,
-      cost = domain.cost,
-      history = domain.history.map(toTrackingEventDto)
+      cost = domain.cost
     )
   }
   def toRecipientDto(domainRecipient: domain.models.Recipient): RecipientDto = {
@@ -132,14 +129,14 @@ private[controllers] object CreateShipmentDto {
   }
   def toDimensionsDto(domainDimensions: domain.models.Dimensions): DimensionsDto = {
     DimensionsDto(
-      length = domainDimensions.length,
-      width = domainDimensions.width,
-      height = domainDimensions.height
+      length = domainDimensions.lengthInCentimeters,
+      width = domainDimensions.widthInCentimeters,
+      height = domainDimensions.heightInCentimeters
     )
   }
   def toPackageDetailsDto(domainPackage: domain.models.PackageDetails): PackageDetailsDto = {
     PackageDetailsDto(
-      weight = domainPackage.weight,
+      weight = domainPackage.weightInKilograms,
       dimensions = toDimensionsDto(domainPackage.dimensions),
       contents = domainPackage.contents
     )
@@ -149,6 +146,35 @@ private[controllers] object CreateShipmentDto {
       status = domainEvent.status,
       timestamp = domainEvent.timestamp,
       location = domainEvent.location
+    )
+  }
+
+  def toDomain(dto: CreateShipmentDto): Shipment = {
+    val packageDetails = PackageDetails(
+      weightInKilograms = dto.weight,
+      dimensions = Dimensions(
+        lengthInCentimeters = dto.length,
+        widthInCentimeters  = dto.width,
+        heightInCentimeters = dto.height
+      ),
+      contents = dto.contents
+    )
+    val  recipient = Recipient(
+      name = dto.streetName,
+      address = Address(
+        street = dto.streetNumber,
+        city = dto.city,
+        state = dto.state,
+        country = dto.country,
+        postalCode = dto.postalCode
+      ),
+      contact = dto.contact
+    )
+
+    Shipment(
+      senderName = dto.senderName,
+      recipient = recipient,
+      packageDetails = packageDetails,
     )
   }
 

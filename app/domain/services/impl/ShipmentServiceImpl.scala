@@ -1,6 +1,6 @@
 package domain.services.impl
 import controllers.helpers.ResultMapper
-import domain.errors.DomainError
+import domain.errors.{DomainError, ShipmentNotFound, ShipmentNotFoundById, UpdateShipmentStatusError}
 import domain.models.{Dimensions, PackageDetails, Recipient, Shipment, ShipmentStatus, TrackingEvent}
 import domain.services.ShipmentService
 import repositories.ShipmentRepository
@@ -48,66 +48,40 @@ class ShipmentServiceImpl @Inject()(
                                      trackingNumber: String,
                                      status: ShipmentStatus,
                                      location: Option[String]
-                                   ): Future[Either[String, Shipment]] = {
-
-    val now = Instant.now()
-
+                                   ): Future[Either[DomainError, Shipment]] = {
     repo.findByTrackingNumber(trackingNumber).flatMap {
       case None =>
-        Future.successful(Left(s"Shipment $trackingNumber not found"))
+        Future.successful(Left(ShipmentNotFound(trackingNumber)))
 
       case Some(shipment) =>
-        validation.validateTransition(shipment.status, status) match {
-          case Left(err) =>
-            Future.successful(Left(err))
-
-          case Right(_) =>
-            val updated = shipment.copy(
-              status = status,
-              updatedAt = now,
-              history = shipment.history :+ TrackingEvent(status, now, location)
-            )
-
-            repo.update(updated).map{
-              case  Success(_) => Right(updated)
-              case Failure(ex) => Left(ex.getMessage)
-            }
-        }
+        shipment.updateStatus(status)
+        .fold(
+          err => Future.successful(Left(err)),
+          updated => repo.update(updated).map{
+            case Success(_) =>  Right(updated)
+            case Failure(err) => Left(UpdateShipmentStatusError(err.getMessage))
+          }
+        )
     }
   }
 
-  override def updateShipment(id: UUID, shipment: Shipment): Future[Either[String, Shipment]] = {
+  override def updateShipment(id: UUID, shipment: Shipment): Future[Either[DomainError, Shipment]] = {
     val now = Instant.now()
 
     repo.getById(id).flatMap {
       case None =>
-        Future.successful(Left(s"Shipment with ID $id not found"))
+        Future.successful(Left(ShipmentNotFoundById(id)))
 
       case Some(existing) =>
-        // 1. Create the updated Domain Model
-        val updated = existing.copy(
-          senderName = shipment.senderName,
-          recipient = Recipient(
-            name = shipment.recipient.name,
-            address = shipment.recipient.address,
-            contact = shipment.recipient.contact
-          ),
-          packageDetails = PackageDetails(
-            weightInKilograms = shipment.packageDetails.weightInKilograms,
-            dimensions = Dimensions(
-              lengthInCentimeters = shipment.packageDetails.dimensions.lengthInCentimeters,
-              widthInCentimeters = shipment.packageDetails.dimensions.widthInCentimeters,
-              heightInCentimeters = shipment.packageDetails.dimensions.heightInCentimeters
-            ),
-            contents = shipment.packageDetails.contents
-          ),
-          updatedAt = now
-        )
-
-        // 2. Persist and return the Domain Model
+       val updated = existing.copy(
+         senderName = shipment.senderName,
+         recipient = shipment.recipient,
+         packageDetails = shipment.packageDetails,
+         updatedAt = now
+       )
         repo.update(updated).map{
           case Success(_) => Right(updated)
-          case Failure(ex) => Left(ex.getMessage)
+          case Failure(ex) => Left(UpdateShipmentStatusError(ex.getMessage))
         }
     }
   }
