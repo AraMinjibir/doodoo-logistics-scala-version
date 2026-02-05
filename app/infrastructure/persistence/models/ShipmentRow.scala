@@ -1,6 +1,6 @@
 package infrastructure.persistence.models
 
-import domain.models.{Address, ShipmentStatus}
+import domain.models.{Address, ShipmentStatus, TrackingEvent}
 
 import java.time.Instant
 import java.util.UUID
@@ -10,17 +10,28 @@ final case class ShipmentRow(
                               trackingNumber: Option[String],
                               senderName: String,
                               recipientName: String,
-                              recipientAddress: Address,
+                              recipientStreet: String,
+                              recipientCity: String,
+                              recipientState: String,
+                              recipientCountry: String,
+                              recipientPostalCode: String,
                               recipientContact: String,
-                              weight: BigDecimal,
-                              length: BigDecimal,
-                              width: BigDecimal,
-                              height: BigDecimal,
+                              weight: Double,
+                              length: Double,
+                              width: Double,
+                              height: Double,
                               contents: String,
                               status: ShipmentStatus,
                               estimatedDeliveryDate: Option[Instant],
                               createdAt: Instant,
                               updatedAt: Instant,
                               cost: BigDecimal,
-                              history: String
-                            )
+                            ) {
+  def recipientAddress: Address = Address.createAddress(
+    recipientStreet,
+    recipientCity,
+    recipientState,
+    recipientCountry,
+    recipientPostalCode
+  ).getOrElse(throw new Exception("Invalid address from DB"))
+}

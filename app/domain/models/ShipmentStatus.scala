@@ -1,6 +1,6 @@
 package domain.models
 
-import play.api.libs.json._
+import domain.errors.{DomainError, InvalidShipmentStatusTransition}
 import play.api.mvc.PathBindable
 
 sealed trait ShipmentStatus extends Product with Serializable
@@ -16,6 +16,14 @@ object ShipmentStatus {
 
   val values: Seq[ShipmentStatus] =
     Seq(Pending, Created, InTransit, OutForDelivery, Delivered, Cancelled)
+  private val allowedTransitions: Map[ShipmentStatus, Set[ShipmentStatus]] = Map(
+    ShipmentStatus.Created        -> Set(ShipmentStatus.InTransit, ShipmentStatus.Cancelled),
+    ShipmentStatus.InTransit      -> Set(ShipmentStatus.OutForDelivery, ShipmentStatus.Cancelled),
+    ShipmentStatus.OutForDelivery -> Set(ShipmentStatus.Delivered, ShipmentStatus.Cancelled),
+    ShipmentStatus.Delivered      -> Set.empty,
+    ShipmentStatus.Cancelled      -> Set.empty
+  )
+
 
   def fromString(value: String): Option[ShipmentStatus] =
     values.find(toString(_) == value)
@@ -30,23 +38,7 @@ object ShipmentStatus {
       case Cancelled         => "Cancelled"
     }
 
-  implicit val format: Format[ShipmentStatus] = new Format[ShipmentStatus] {
-
-    override def writes(status: ShipmentStatus): JsValue =
-      JsString(ShipmentStatus.toString(status))
-
-    override def reads(json: JsValue): JsResult[ShipmentStatus] =
-      json match {
-        case JsString(value) =>
-          fromString(value)
-            .map(JsSuccess(_))
-            .getOrElse(JsError(s"Invalid shipment status: $value"))
-
-        case _ => JsError("ShipmentStatus must be a string")
-      }
-  }
-
-//  Path bindable for type-safe routing
+  //  Path bindable for type-safe routing
   implicit def pathBindable(implicit stringBinder: PathBindable[String]): PathBindable[ShipmentStatus] =
     new PathBindable[ShipmentStatus] {
       override def bind(key: String, value: String): Either[String, ShipmentStatus] = {
@@ -55,4 +47,15 @@ object ShipmentStatus {
 
       override def unbind(key: String, value: ShipmentStatus): String = value.toString
     }
+
+  def validateTransition(current: ShipmentStatus, next: ShipmentStatus): Either[DomainError, Unit] = {
+    val allowedNext = allowedTransitions.getOrElse(current, Set.empty)
+
+    if (!allowedNext.contains(next))
+      Left(InvalidShipmentStatusTransition(current, next))
+    else
+      Right(())
+  }
+
+
 }

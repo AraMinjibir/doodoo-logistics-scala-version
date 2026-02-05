@@ -5,7 +5,7 @@ import slick.lifted.Tag
 
 import java.time.Instant
 import java.util.UUID
-import play.api.libs.json.Json
+import play.api.libs.json.{Format, Json, OFormat}
 import domain.models.{Address, ShipmentStatus, TrackingEvent}
 import infrastructure.persistence.models.ShipmentRow
 
@@ -23,18 +23,16 @@ class ShipmentsTable(tag: Tag) extends Table[ShipmentRow](tag, "shipments") {
   def recipientCountry = column[String]("recipient_country")
   def recipientPostalCode = column[String]("recipient_postal_code")
   def recipientContact = column[String]("recipient_contact")
-  def weight = column[BigDecimal]("weight")
-  def length = column[BigDecimal]("length")
-  def width = column[BigDecimal]("width")
-  def height = column[BigDecimal]("height")
+  def weight = column[Double]("weight")
+  def length = column[Double]("length")
+  def width = column[Double]("width")
+  def height = column[Double]("height")
   def contents = column[String]("contents")
   def status = column[ShipmentStatus]("status")
   def estimatedDeliveryDate = column[Option[Instant]]("estimated_delivery_date")
   def updatedAt = column[Instant]("updated_at")
   def createdAt = column[Instant]("created_at")
   def cost = column[BigDecimal]("cost")
-  def history = column[String]("history")
-
 
   def * =
     (
@@ -42,7 +40,11 @@ class ShipmentsTable(tag: Tag) extends Table[ShipmentRow](tag, "shipments") {
       trackingNumber,
       senderName,
       recipientName,
-      (recipientStreet, recipientCity, recipientState, recipientCountry, recipientPostalCode).mapTo[Address],
+      recipientStreet,
+      recipientCity,
+      recipientState,
+      recipientCountry,
+      recipientPostalCode,
       recipientContact,
       weight,
       length,
@@ -51,9 +53,9 @@ class ShipmentsTable(tag: Tag) extends Table[ShipmentRow](tag, "shipments") {
       contents,
       status,
       estimatedDeliveryDate,
-      createdAt,updatedAt,
-      cost,
-      history
+      createdAt,
+      updatedAt,
+      cost
     ) <> ((ShipmentRow.apply _).tupled, ShipmentRow.unapply)
 }
 
@@ -61,8 +63,10 @@ object ShipmentsTable {
 
   val table = TableQuery[ShipmentsTable]
 
+  implicit val shipmentStatusleFormat: Format[ShipmentStatus] =
+    controllers.json.ShipmentStatusJson.format
 
-  implicit val trackingEventFormat = Json.format[TrackingEvent]
+  implicit val trackingEventFormat: OFormat[TrackingEvent] = Json.format[TrackingEvent]
 
   // JSON → String mapping for history
   implicit val seqTrackingEventColumnType: BaseColumnType[Seq[TrackingEvent]] =
@@ -86,7 +90,7 @@ object ShipmentsTable {
     )
 
   // Address JSON
-  implicit val addressFormat = Json.format[Address]
+  implicit val addressFormat: OFormat[Address] = Json.format[Address]
 
   implicit val addressColumnType: BaseColumnType[Address] =
     MappedColumnType.base[Address, String](

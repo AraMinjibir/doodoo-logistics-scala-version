@@ -1,6 +1,5 @@
 package scala.domain.helpers
 
-import api.dto.{CreateShipmentDto, DimensionsDto, PackageDetailsDto, RecipientDto}
 import domain.models.{Address, Dimensions, PackageDetails, Recipient, Shipment, ShipmentStatus}
 import play.api.Application
 import play.api.libs.json.{JsObject, Json}
@@ -46,19 +45,27 @@ val fixedInstant: Instant = Instant.parse("2026-01-10T10:00:00Z")
 
   // DTO Template for Service Inputs
 
-  def validCreateDto(sender: String = "Ara Minjibir"): CreateShipmentDto =
-    CreateShipmentDto(
+  def validCreateDto(sender: String = "Ara Minjibir"): Shipment =
+    Shipment(
+      id = shipmentId,
       senderName = sender,
-      recipient = RecipientDto(
+      recipient = Recipient(
         name = "Test Recipient",
         address = Address("123 Main St", "Mjb", "Kano", "Nigeria", "100001"),
         contact = "08012345678"
       ),
-      packageDetails = PackageDetailsDto(
+      trackingNumber = Some(trackingNumber),
+      packageDetails = PackageDetails(
         weight = 30.0,
-        dimensions = DimensionsDto(30.0, 20.0, 10.0),
+        dimensions = Dimensions(30.0, 20.0, 10.0),
         contents = "Clothing"
-      )
+      ),
+      status = ShipmentStatus.Created,
+      estimatedDeliveryDate = None,
+      createdAt = Instant.now(),
+      updatedAt = Instant.now(),
+      cost = BigDecimal(5000),
+      history = Seq.empty
     )
 
   // Default valid template
