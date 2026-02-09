@@ -1,8 +1,9 @@
 package scala.domain.helpers
 
 import domain.models.{Address, Dimensions, PackageDetails, Recipient, Shipment, ShipmentStatus}
+import org.scalatest.Assertions._
 import play.api.Application
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.mvc.AnyContentAsJson
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -20,74 +21,116 @@ val fixedInstant: Instant = Instant.parse("2026-01-10T10:00:00Z")
   val trackingNumber: String = "TRACK-123"
 
   def testNow: Instant = Instant.now()
+  val fixedNow = Instant.parse("2026-02-09T18:36:27Z")
+
 
   def createTestShipment(
                           id: UUID = shipmentId,
                           tracking: String = trackingNumber,
                           status: ShipmentStatus = ShipmentStatus.Created
-                        ): Shipment = Shipment(
-    id = id,
-    trackingNumber = Some(tracking),
-    senderName = "Ara Minjibir",
-    recipient = Recipient(
-      name = "Test Recipient",
-      address = Address("123 Main St", "Mjb", "Kano", "Nigeria", "100001"),
-      contact = "08012345678"
-    ),
-    packageDetails = PackageDetails(30.0, Dimensions(30.0, 20.0, 10.0), "Clothing"),
-    status = status,
-    estimatedDeliveryDate = None,
-    createdAt = testNow,
-    updatedAt = testNow,
-    cost = BigDecimal(5000),
-    history = Seq.empty
-  )
+                        ): Shipment = {
+
+    val address = Address
+      .createAddress("123 Main St", "Mjb", "Kano", "Nigeria", "100001")
+      .fold(err => fail(err.map(_.getMessage).mkString(",")), identity)
+
+    val recipient = Recipient
+      .createRecipient("Test Recipient", "08012345678", address)
+      .fold(err => fail(err.map(_.getMessage).mkString(",")), identity)
+
+    val dimensions = Dimensions
+      .createDimension(30.0, 20.0, 10.0)
+      .fold(err => fail(err.map(_.getMessage).mkString(",")), identity)
+
+    val packageDetails = PackageDetails
+      .createPackageDetails(30.0, dimensions, "Clothing")
+      .fold(err => fail(err.map(_.getMessage).mkString(",")), identity)
+
+    Shipment(
+      id = id,
+      trackingNumber = Some(tracking),
+      senderName = "Ara Minjibir",
+      recipient = recipient,
+      packageDetails = packageDetails,
+      status = status,
+      createdAt = testNow,
+      updatedAt = testNow
+    )
+  }
+
 
   // DTO Template for Service Inputs
 
-  def validCreateDto(sender: String = "Ara Minjibir"): Shipment =
+  def validShipment(sender: String = "Ara Minjibir", now: Instant = fixedNow): Shipment = {
+
+    val address =
+      Address
+        .createAddress(
+          "123 Main St",
+          "Mjb",
+          "Kano",
+          "Nigeria",
+          "100001"
+        )
+        .fold(err => fail(err.map(_.getMessage).mkString(",")), identity)
+
+    val recipient =
+      Recipient
+        .createRecipient(
+          name = "Test Recipient",
+          contact = "08012345678",
+          address = address
+        )
+        .fold(err => fail(err.map(_.getMessage).mkString(",")), identity)
+
+    val dimensions =
+      Dimensions
+        .createDimension(30.0, 20.0, 10.0)
+        .fold(err => fail(err.map(_.getMessage).mkString(",")), identity)
+
+    val packageDetails =
+      PackageDetails
+        .createPackageDetails(
+          weightInKilograms = 30.0,
+          dimensions = dimensions,
+          contents = "Clothing"
+        )
+        .fold(err => fail(err.map(_.getMessage).mkString(",")), identity)
+
     Shipment(
       id = shipmentId,
       senderName = sender,
-      recipient = Recipient(
-        name = "Test Recipient",
-        address = Address("123 Main St", "Mjb", "Kano", "Nigeria", "100001"),
-        contact = "08012345678"
-      ),
+      recipient = recipient,
+      packageDetails = packageDetails,
       trackingNumber = Some(trackingNumber),
-      packageDetails = PackageDetails(
-        weight = 30.0,
-        dimensions = Dimensions(30.0, 20.0, 10.0),
-        contents = "Clothing"
-      ),
       status = ShipmentStatus.Created,
-      estimatedDeliveryDate = None,
-      createdAt = Instant.now(),
-      updatedAt = Instant.now(),
-      cost = BigDecimal(5000),
-      history = Seq.empty
+      createdAt = now,
+      updatedAt = now
     )
-
+  }
   // Default valid template
-  def validCreatePayload(sender: String = "Ara Minjibir"): JsObject = Json.obj(
-    "senderName" -> sender,
-    "recipient" -> Json.obj(
+  def validCreatePayload(): JsValue =
+    Json.obj(
+      "senderName" -> "Ara Minjibir",
+
+      // Recipient fields (flat)
       "name" -> "Test Recipient",
       "contact" -> "08012345678",
-      "address" -> Json.obj(
-        "street" -> "123 Main St",
-        "city" -> "Kano",
-        "state" -> "Kano",
-        "country" -> "Nigeria",
-        "postalCode" -> "100001"
-      )
-    ),
-    "packageDetails" -> Json.obj(
-      "weight" -> 10.5,
-      "dimensions" -> Json.obj("length" -> 20, "width" -> 15, "height" -> 10),
-      "contents" -> "Books"
+      "streetName" -> "Main St",
+      "streetNumber" -> "123",
+      "city" -> "Mjb",
+      "state" -> "Kano",
+      "country" -> "Nigeria",
+      "postalCode" -> "100001",
+
+      // Package fields (flat)
+      "weight" -> 30.0,
+      "length" -> 30.0,
+      "width" -> 20.0,
+      "height" -> 10.0,
+      "contents" -> "Clothing"
     )
-  )
+
 
   // Template for testing validation failures
   def invalidCreatePayload: JsObject = Json.obj(
@@ -98,7 +141,7 @@ val fixedInstant: Instant = Instant.parse("2026-01-10T10:00:00Z")
 
   def seedShipment(app: Application, sender: String = "Seed User"): Unit = {
     val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, "/shipments")
-      .withJsonBody(validCreatePayload(sender))
+      .withJsonBody(validCreatePayload())
 
     // result is a Future[Result], we await it to ensure DB is seeded before test continues
     val result = route(app, request).get
