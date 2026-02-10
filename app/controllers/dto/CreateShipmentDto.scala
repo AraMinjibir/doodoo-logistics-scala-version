@@ -141,14 +141,6 @@ private[controllers] object CreateShipmentDto {
       contents = domainPackage.contents
     )
   }
-  def toTrackingEventDto(domainEvent: TrackingEvent): TrackingEventDto = {
-    TrackingEventDto(
-      status = domainEvent.status,
-      timestamp = domainEvent.timestamp,
-      location = domainEvent.location
-    )
-  }
-
   def toDomain(dto: CreateShipmentDto): Shipment = {
     val packageDetails = PackageDetails(
       weightInKilograms = dto.weight,
