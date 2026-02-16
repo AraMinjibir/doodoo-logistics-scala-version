@@ -1,5 +1,6 @@
 package controllers.dto
 
+import domain.errors.DomainError
 import domain.models._
 import play.api.libs.json.{Json, OFormat}
 
@@ -102,6 +103,26 @@ private[controllers] final case class CreateShipmentDto(
 
 
 }
+private[controllers] final case class ProofOfDeliveryDto(
+                                     image:Option[String],
+                                     note:String,
+                                     submittedBy: String,
+                                     submittedAt:Option[Instant] = None
+                                   )
+private[controllers] object ProofOfDeliveryDto {
+  implicit val format: OFormat[ProofOfDeliveryDto] = Json.format[ProofOfDeliveryDto]
+
+  def toProofOfDeliveryDomain(dto:ProofOfDeliveryDto): Either[List[DomainError],ProofOfDelivery] = {
+    ProofOfDelivery.createProofOfDelivery(
+      image = dto.image,
+      note = dto.note,
+      submittedBy = dto.submittedBy,
+      submittedAt = dto.submittedAt.getOrElse(Instant.now())
+    )
+  }
+
+
+}
 private[controllers] object CreateShipmentDto {
   implicit val format: OFormat[CreateShipmentDto] = Json.format[CreateShipmentDto]
 
@@ -117,7 +138,8 @@ private[controllers] object CreateShipmentDto {
       status = domain.status,
       estimatedDeliveryDate = domain.deliveryDateEstimate,
       createdAt = domain.createdAt,
-      cost = domain.cost
+      cost = domain.cost,
+      proofOfDelivery = domain.proofOfDelivery
     )
   }
   def toRecipientDto(domainRecipient: domain.models.Recipient): RecipientDto = {

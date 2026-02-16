@@ -22,7 +22,7 @@ CONSTRAINT uq_shipments_tracking_number UNIQUE (tracking_number),
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
   cost NUMERIC(12,2) NOT NULL,
-  history TEXT
+ proof_of_delivery TEXT
 );
 
 CREATE INDEX idx_shipments_status ON shipments(status);

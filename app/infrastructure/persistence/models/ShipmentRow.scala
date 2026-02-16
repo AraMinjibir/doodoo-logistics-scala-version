@@ -1,6 +1,6 @@
 package infrastructure.persistence.models
 
-import domain.models.{Address, ShipmentStatus, TrackingEvent}
+import domain.models.{Address, ShipmentStatus, ProofOfDelivery}
 
 import java.time.Instant
 import java.util.UUID
@@ -26,6 +26,7 @@ final case class ShipmentRow(
                               createdAt: Instant,
                               updatedAt: Instant,
                               cost: BigDecimal,
+                              proofOfDelivery: Seq[ProofOfDelivery]
                             ) {
   def recipientAddress: Address = Address.createAddress(
     recipientStreet,

@@ -1,7 +1,7 @@
 package domain.services
 
 import domain.errors.DomainError
-import domain.models.{Shipment, ShipmentStatus}
+import domain.models.{ProofOfDelivery, Shipment, ShipmentStatus}
 
 import java.util.UUID
 import scala.concurrent.Future
@@ -24,6 +24,7 @@ trait ShipmentService {
 
   def listShipments(offset: Int, limit: Int): Future[Seq[Shipment]]
   def deleteShipment(id: UUID): Future[Either[String, Unit]]
+  def uploadProofOfDelivery(trackingNumber: String, proof: ProofOfDelivery): Future[Either[List[DomainError], Shipment]]
 
 }
 

@@ -1,7 +1,7 @@
 package controllers
 
 import com.google.inject.{Inject, Singleton}
-import dto.CreateShipmentDto
+import dto.{CreateShipmentDto, ProofOfDeliveryDto, ShipmentResponseDto}
 import controllers.helpers.ResultMapper
 import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc._
@@ -93,6 +93,7 @@ class ShipmentController @Inject()(shipmentService: ShipmentService,
       case e => handleException(e)
     }
   }
+
   def updateShipment(id: UUID): Action[JsValue] = Action.async(parse.json) { request =>
     request.body.validate[CreateShipmentDto].fold(
       errors => Future.successful(BadRequest(Json.obj("errors" -> JsError.toJson(errors)))),
@@ -140,6 +141,7 @@ class ShipmentController @Inject()(shipmentService: ShipmentService,
       }
     )
   }
+
   def deleteShipment(id: UUID): Action[AnyContent] = Action.async { implicit request =>
     shipmentService.deleteShipment(id).map {
       case Left(error) if error.contains("not found") =>
@@ -155,4 +157,48 @@ class ShipmentController @Inject()(shipmentService: ShipmentService,
       case e => handleException(e)
     }
   }
-}
+
+  def uploadProofOfDelivery(trackingNumber: String): Action[JsValue] =
+    Action.async(parse.json) { request =>
+
+      request.body.validate[ProofOfDeliveryDto].fold(
+
+        errors =>
+          Future.successful(onValidationError(errors)),
+
+        proofDto =>
+          ProofOfDeliveryDto.toProofOfDeliveryDomain(proofDto) match {
+
+            case Left(validationErrors) =>
+              Future.successful(
+                BadRequest(
+                  Json.obj("errors" -> validationErrors.map(_.message))
+                )
+              )
+
+            case Right(validProof) =>
+              shipmentService
+                .uploadProofOfDelivery(trackingNumber, validProof)
+                .map {
+
+                  case Left(serviceErrors) =>
+                    BadRequest(
+                      Json.obj("errors" -> serviceErrors.map(_.message))
+                    )
+
+                  case Right(updatedShipment) =>
+
+                    Ok(
+                      Json.toJson(
+                        ShipmentResponseDto.fromDomain(updatedShipment)
+
+                      )
+                    )
+                }
+          }
+      )
+    }
+  }
+
+
+

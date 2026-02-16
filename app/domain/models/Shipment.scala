@@ -1,6 +1,6 @@
 package domain.models
-import domain.errors.{DomainError, InvalidShipmentStatusTransition}
-import domain.models.ShipmentStatus.Created
+import domain.errors.{DomainError, DuplicateProofOfDelivery, InvalidShipmentStatusTransition, ProofMustContainImageOrNote, ShipmentNotDelivered, SubmittedByEmpty}
+import domain.models.ShipmentStatus.{Created, Delivered}
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -80,6 +80,42 @@ object Address {
     )
   }
 }
+final case class ProofOfDelivery private(
+                            image:Option[String],
+                            note:String,
+                            submittedBy: String,
+                            submittedAt:Instant
+                          )
+object ProofOfDelivery {
+  def createProofOfDelivery(
+                             image: Option[String],
+                             note: String,
+                             submittedBy: String,
+                             submittedAt: Instant
+                           ): Either[List[DomainError], ProofOfDelivery] = {
+
+    val cleanedImage     = image.map(_.trim).filter(_.nonEmpty)
+    val cleanedNote      = note.trim
+    val cleanedSubmitter = submittedBy.trim
+
+    val errors: List[DomainError] = List(
+      Option.when(cleanedImage.isEmpty && cleanedNote.isEmpty)(
+        ProofMustContainImageOrNote
+      ),
+      Option.when(cleanedSubmitter.isEmpty)(
+        SubmittedByEmpty
+      )
+    ).flatten
+
+    Either.cond(
+      errors.isEmpty,
+      ProofOfDelivery(cleanedImage, cleanedNote, cleanedSubmitter, submittedAt),
+      errors
+    )
+  }
+
+
+}
 
 final case class Shipment(
                            senderName: String,
@@ -89,7 +125,8 @@ final case class Shipment(
                            trackingNumber: Option[String]  = Some(Shipment.generateTrackingNumber()),
                            status: ShipmentStatus = Created,
                            createdAt: Instant = Instant.now(),
-                           updatedAt: Instant = Instant.now()
+                           updatedAt: Instant = Instant.now(),
+                           proofOfDelivery: Seq[ProofOfDelivery] = Seq.empty,
                          ) {
   def cost: BigDecimal = {
     val weight = packageDetails.weightInKilograms
@@ -125,6 +162,27 @@ final case class Shipment(
     packageDetails = packageDetails,
     updatedAt = now
   )
+
+  def attachProofOfDelivery(
+                             proof: ProofOfDelivery
+                           ): Either[DomainError, Shipment] = {
+
+    if (status != Delivered)
+      Left(ShipmentNotDelivered)
+
+    else if (proofOfDelivery.exists(_.submittedBy == proof.submittedBy))
+      Left(DuplicateProofOfDelivery)
+
+    else
+      Right(
+        copy(
+          proofOfDelivery = proofOfDelivery :+ proof,
+          updatedAt = Instant.now()
+        )
+      )
+  }
+
+
 }
 
 object Shipment {

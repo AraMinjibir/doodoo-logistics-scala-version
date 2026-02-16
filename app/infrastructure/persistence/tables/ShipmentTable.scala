@@ -6,7 +6,7 @@ import slick.lifted.Tag
 import java.time.Instant
 import java.util.UUID
 import play.api.libs.json.{Format, Json, OFormat}
-import domain.models.{Address, ShipmentStatus, TrackingEvent}
+import domain.models.{Address, ShipmentStatus, ProofOfDelivery}
 import infrastructure.persistence.models.ShipmentRow
 
 class ShipmentsTable(tag: Tag) extends Table[ShipmentRow](tag, "shipments") {
@@ -33,6 +33,7 @@ class ShipmentsTable(tag: Tag) extends Table[ShipmentRow](tag, "shipments") {
   def updatedAt = column[Instant]("updated_at")
   def createdAt = column[Instant]("created_at")
   def cost = column[BigDecimal]("cost")
+  def proofOfDelivery = column[Seq[ProofOfDelivery]]("proof_of_delivery")
 
   def * =
     (
@@ -55,7 +56,8 @@ class ShipmentsTable(tag: Tag) extends Table[ShipmentRow](tag, "shipments") {
       estimatedDeliveryDate,
       createdAt,
       updatedAt,
-      cost
+      cost,
+     proofOfDelivery
     ) <> ((ShipmentRow.apply _).tupled, ShipmentRow.unapply)
 }
 
@@ -63,18 +65,17 @@ object ShipmentsTable {
 
   val table = TableQuery[ShipmentsTable]
 
-  implicit val shipmentStatusleFormat: Format[ShipmentStatus] =
+  implicit val shipmentStatusFormat: Format[ShipmentStatus] =
     controllers.json.ShipmentStatusJson.format
 
-  implicit val trackingEventFormat: OFormat[TrackingEvent] = Json.format[TrackingEvent]
+  implicit val proofOfDelivery: OFormat[ProofOfDelivery] = Json.format[ProofOfDelivery]
 
-  // JSON → String mapping for history
-  implicit val seqTrackingEventColumnType: BaseColumnType[Seq[TrackingEvent]] =
-    MappedColumnType.base[Seq[TrackingEvent], String](
-      seq => Json.toJson(seq).toString(),
+implicit val proofOfDeliveryColumnType: BaseColumnType[Seq[ProofOfDelivery]] =
+    MappedColumnType.base[Seq[ProofOfDelivery], String](
+      seq => Json.toJson(seq).toString(),           // Serialize Seq → JSON string
       json =>
         if (json == null || json.isEmpty) Seq.empty
-        else Json.parse(json).as[Seq[TrackingEvent]]
+        else Json.parse(json).as[Seq[ProofOfDelivery]] // Deserialize JSON string → Seq
     )
 
   // Enum mapping for ShipmentStatus
