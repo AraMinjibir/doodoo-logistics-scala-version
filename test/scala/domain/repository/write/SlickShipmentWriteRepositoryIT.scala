@@ -2,6 +2,7 @@ package repositories.write
 
 import domain.models._
 import infrastructure.persistence.tables.ShipmentsTable
+import org.scalatest.OptionValues.convertOptionToValuable
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -106,5 +107,29 @@ class SlickShipmentWriteRepositoryIT
         result shouldBe Success (0)
       }
     }
+
+    "upload" should{
+      "successfully upload a proof of delivery column in the shipment row" in {
+        val proof = uploadProofOfDelivery
+        val shipment = createTestShipment()
+
+        Await.result(repo.create(shipment), 5.second)
+        val result = Await.result(repo.uploadProofOfDelivery(shipmentId,proof), 5.second)
+        val saved = result.value
+
+        saved.id shouldBe shipment.id
+        saved.trackingNumber shouldBe shipment.trackingNumber
+        saved.status shouldBe shipment.status
+        saved.proofOfDelivery shouldBe List(proof)
+        saved.recipient shouldBe shipment.recipient
+        saved.packageDetails shouldBe shipment.packageDetails
+        saved.senderName shouldBe shipment.senderName
+
+        val rows = Await.result(dbConfig.db.run(ShipmentsTable.table.result), 5.second)
+        rows.head.proofOfDelivery shouldBe List(proof)
+      }
+    }
   }
+
+
 }

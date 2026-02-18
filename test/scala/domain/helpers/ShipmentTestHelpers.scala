@@ -1,6 +1,6 @@
 package scala.domain.helpers
 
-import domain.models.{Address, Dimensions, PackageDetails, Recipient, Shipment, ShipmentStatus}
+import domain.models.{Address, Dimensions, PackageDetails, ProofOfDelivery, Recipient, Shipment, ShipmentStatus}
 import org.scalatest.Assertions._
 import play.api.Application
 import play.api.libs.json.{JsObject, JsValue, Json}
@@ -58,7 +58,19 @@ val fixedInstant: Instant = Instant.parse("2026-01-10T10:00:00Z")
     )
   }
 
+def uploadProofOfDelivery: ProofOfDelivery = {
+  val image = Some("https://fiqiufqijqooqjiq");
+  val note = "Proof of delivery uploaded";
+  val submittedBy = "DooDoo Logistics";
+  val submittedAt = fixedNow
 
+  ProofOfDelivery(
+    image = image,
+    note = note,
+    submittedBy = submittedBy,
+    submittedAt = submittedAt
+  )
+}
   // DTO Template for Service Inputs
 
   def validShipment(sender: String = "Ara Minjibir", now: Instant = fixedNow): Shipment = {
