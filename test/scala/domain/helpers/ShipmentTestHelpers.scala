@@ -1,5 +1,6 @@
 package scala.domain.helpers
 
+import domain.errors.DomainError
 import domain.models.{Address, Dimensions, PackageDetails, ProofOfDelivery, Recipient, Shipment, ShipmentStatus}
 import org.scalatest.Assertions._
 import play.api.Application
@@ -71,6 +72,19 @@ def uploadProofOfDelivery: ProofOfDelivery = {
     submittedAt = submittedAt
   )
 }
+
+  def validProofOfDelivery: Either[List[DomainError], ProofOfDelivery] = {
+    ProofOfDelivery.createProofOfDelivery(
+      image = Some("https://doodooImage.png"),
+      note = "DooDoo proof of delivery after delivered",
+      submittedBy = "DooDoo Logistics User",
+      submittedAt = fixedNow
+    )
+  }
+  def validProof: ProofOfDelivery = validProofOfDelivery match {
+    case Right(proof) => proof
+    case Left(errors) => fail(s"Expected valid proof but got errors: $errors")
+  }
   // DTO Template for Service Inputs
 
   def validShipment(sender: String = "Ara Minjibir", now: Instant = fixedNow): Shipment = {

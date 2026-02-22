@@ -1,7 +1,8 @@
 package scala.domain.services.impl
 
-import domain.errors.ShipmentNotFound
+import domain.errors.{ShipmentNotDelivered, ShipmentNotFound}
 import domain.models.ShipmentStatus
+import domain.models.ShipmentStatus.Delivered
 import domain.services.impl.ShipmentServiceImpl
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
@@ -36,6 +37,7 @@ class ShipmentServiceImplSpec
     reset(mockRepo)
   }
 val shipment = validShipment()
+
   "ShipmentServiceImpl" should {
 
     "CREATE a shipment successfully" in {
@@ -68,7 +70,6 @@ val shipment = validShipment()
 
       result shouldBe Some(shipment)
     }
-
     "RETURN None when shipment does not exist by tracking number" in {
       when(mockRepo.findByTrackingNumber(any()))
         .thenReturn(Future.successful(None))
@@ -78,6 +79,7 @@ val shipment = validShipment()
 
       result shouldBe None
     }
+
     "UPDATE shipment status successfully when transition is valid" in {
       when(mockRepo.findByTrackingNumber(trackingNumber))
         .thenReturn(Future.successful(Some(shipment)))
@@ -98,7 +100,6 @@ val shipment = validShipment()
       result.map(_.status) shouldBe Right(ShipmentStatus.InTransit)
       verify(mockRepo).update(any())
     }
-
     "FAIL to update shipment status when shipment does not exist" in {
       when(mockRepo.findByTrackingNumber(trackingNumber))
         .thenReturn(Future.successful(None))
@@ -116,7 +117,6 @@ val shipment = validShipment()
       result shouldBe Left(ShipmentNotFound(trackingNumber))
       verify(mockRepo, never()).update(any())
     }
-
     "FAIL to update shipment status when transition is invalid" in {
       val delivered =
         shipment.copy(status = ShipmentStatus.Delivered)
@@ -147,7 +147,6 @@ val shipment = validShipment()
 
       result shouldBe Right(())
     }
-
     "RETURN Left when deleting non-existing shipment" in {
       when(mockRepo.delete(shipmentId))
         .thenReturn(Future.successful(Success(0)))
@@ -157,4 +156,40 @@ val shipment = validShipment()
 
       result shouldBe Left("Shipment not found")
     }
-  }}
+
+    "UPLOAD proof of delivery successfully when the shipment status is delivered" in {
+      val proof = validProof
+      val deliveredShipment = shipment.copy(status = ShipmentStatus.Delivered)
+
+      when(mockRepo.findByTrackingNumber(trackingNumber))
+        .thenReturn(Future.successful(Some(deliveredShipment)))
+
+      when(mockRepo.uploadProofOfDelivery(shipmentId,proof))
+        .thenReturn(Future.successful(Some(deliveredShipment)))
+
+      val result = Await.result(service.uploadProofOfDelivery(trackingNumber,proof), 5.second)
+
+      result.map(_.status) shouldBe Right(ShipmentStatus.Delivered)
+      verify(mockRepo).uploadProofOfDelivery(shipmentId,proof)
+
+
+    }
+    "Fail to upload the proof of delivery when shipment status is not Delivered" in {
+
+      val notDeliveredShipment =
+        shipment.copy(status = ShipmentStatus.Created)
+
+      when(mockRepo.findByTrackingNumber(trackingNumber))
+        .thenReturn(Future.successful(Some(notDeliveredShipment)))
+
+      val result =
+        Await.result(service.uploadProofOfDelivery(trackingNumber, validProof), 5.seconds)
+
+      result shouldBe Left(List(ShipmentNotDelivered))
+
+      verify(mockRepo, never())
+        .uploadProofOfDelivery(shipmentId, validProof)
+    }
+
+  }
+}
