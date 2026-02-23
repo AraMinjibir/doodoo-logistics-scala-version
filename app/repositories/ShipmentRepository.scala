@@ -1,6 +1,6 @@
 package repositories
 
-import domain.models.{Shipment, ShipmentStatus}
+import domain.models.{ProofOfDelivery, Shipment, ShipmentStatus}
 
 import java.util.UUID
 import scala.concurrent.Future
@@ -14,4 +14,6 @@ trait ShipmentRepository {
   def getByStatus(status:ShipmentStatus):Future[Seq[Shipment]]
   def listAll(offset: Int, limit: Int): Future[Seq[Shipment]]
   def findByTrackingNumber(trackingNumber: String) : Future[Option[Shipment]]
+  def uploadProofOfDelivery(shipmentId: UUID,proof:ProofOfDelivery
+                                    ): Future[Option[Shipment]]
 }

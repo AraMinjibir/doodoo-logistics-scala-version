@@ -24,3 +24,7 @@ PATCH   /shipments/tracking/:trackingNumber/status   controllers.ShipmentControl
 # Delete a shipment
 DELETE  /shipments/:shipmentId             controllers.ShipmentController.deleteShipment(shipmentId: java.util.UUID)
 
+#Upload proof of delivery
+POST /shipments/tracking/:trackingNumber/proof-of-delivery      controllers.ShipmentController.uploadProofOfDelivery(trackingNumber: String)
+
+

@@ -1,7 +1,7 @@
 package mappers
 
 import com.google.inject.Singleton
-import domain.models.{Dimensions, PackageDetails, Recipient, Shipment, ShipmentStatus, TrackingEvent}
+import domain.models.{Dimensions, PackageDetails, Recipient, Shipment, ShipmentStatus, ProofOfDelivery}
 import infrastructure.persistence.models.ShipmentRow
 import play.api.libs.json.{Format, Json, OFormat}
 
@@ -10,7 +10,7 @@ class ShipmentRowMapper {
 
   implicit val shipmentStatusleFormat: Format[ShipmentStatus] =
     controllers.json.ShipmentStatusJson.format
-  implicit val trackingEventFormat: OFormat[TrackingEvent] = Json.format[TrackingEvent]
+  implicit val trackingEventFormat: OFormat[ProofOfDelivery] = Json.format[ProofOfDelivery]
 
   // DOMAIN → ROW
   def toRow(domain: Shipment): ShipmentRow = {
@@ -34,10 +34,12 @@ class ShipmentRowMapper {
       estimatedDeliveryDate = domain.deliveryDateEstimate,
       createdAt = domain.createdAt,
       updatedAt = domain.updatedAt,
-      cost = domain.cost
+      cost = domain.cost,
+      proofOfDelivery = domain.proofOfDelivery
     )
   }
   def fromRow(row: ShipmentRow): Shipment = {
+
     Shipment(
       id = row.id,
       trackingNumber = row.trackingNumber,
@@ -59,6 +61,7 @@ class ShipmentRowMapper {
       status = row.status,
       createdAt = row.createdAt,
       updatedAt = row.updatedAt,
+      proofOfDelivery = row.proofOfDelivery
     )
   }
 

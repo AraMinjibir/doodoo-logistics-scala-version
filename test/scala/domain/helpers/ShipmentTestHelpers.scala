@@ -1,6 +1,7 @@
 package scala.domain.helpers
 
-import domain.models.{Address, Dimensions, PackageDetails, Recipient, Shipment, ShipmentStatus}
+import domain.errors.DomainError
+import domain.models.{Address, Dimensions, PackageDetails, ProofOfDelivery, Recipient, Shipment, ShipmentStatus}
 import org.scalatest.Assertions._
 import play.api.Application
 import play.api.libs.json.{JsObject, JsValue, Json}
@@ -58,7 +59,32 @@ val fixedInstant: Instant = Instant.parse("2026-01-10T10:00:00Z")
     )
   }
 
+def uploadProofOfDelivery: ProofOfDelivery = {
+  val image = Some("https://fiqiufqijqooqjiq");
+  val note = "Proof of delivery uploaded";
+  val submittedBy = "DooDoo Logistics";
+  val submittedAt = fixedNow
 
+  ProofOfDelivery(
+    image = image,
+    note = note,
+    submittedBy = submittedBy,
+    submittedAt = submittedAt
+  )
+}
+
+  def validProofOfDelivery: Either[List[DomainError], ProofOfDelivery] = {
+    ProofOfDelivery.createProofOfDelivery(
+      image = Some("https://doodooImage.png"),
+      note = "DooDoo proof of delivery after delivered",
+      submittedBy = "DooDoo Logistics User",
+      submittedAt = fixedNow
+    )
+  }
+  def validProof: ProofOfDelivery = validProofOfDelivery match {
+    case Right(proof) => proof
+    case Left(errors) => fail(s"Expected valid proof but got errors: $errors")
+  }
   // DTO Template for Service Inputs
 
   def validShipment(sender: String = "Ara Minjibir", now: Instant = fixedNow): Shipment = {
@@ -109,7 +135,7 @@ val fixedInstant: Instant = Instant.parse("2026-01-10T10:00:00Z")
     )
   }
   // Default valid template
-  def validCreatePayload(): JsValue =
+  def validCreatePayload: JsValue =
     Json.obj(
       "senderName" -> "Ara Minjibir",
 
@@ -131,6 +157,13 @@ val fixedInstant: Instant = Instant.parse("2026-01-10T10:00:00Z")
       "contents" -> "Clothing"
     )
 
+  def proofPayload = Json.obj(
+    "image" -> "https://doodooImage.png",
+    "note" -> "Delivered successfully",
+    "submittedBy" -> "Ara",
+    "submittedAt" -> "2025-01-01T10:00:00Z"
+  )
+
 
   // Template for testing validation failures
   def invalidCreatePayload: JsObject = Json.obj(
@@ -141,7 +174,7 @@ val fixedInstant: Instant = Instant.parse("2026-01-10T10:00:00Z")
 
   def seedShipment(app: Application, sender: String = "Seed User"): Unit = {
     val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, "/shipments")
-      .withJsonBody(validCreatePayload())
+      .withJsonBody(validCreatePayload)
 
     // result is a Future[Result], we await it to ensure DB is seeded before test continues
     val result = route(app, request).get

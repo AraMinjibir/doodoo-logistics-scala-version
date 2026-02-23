@@ -1,12 +1,13 @@
 package repositories
 
 import com.google.inject.{Inject, Singleton}
-import domain.models.{Shipment, ShipmentStatus}
+import domain.models.{ProofOfDelivery, Shipment, ShipmentStatus}
 import infrastructure.persistence.tables.ShipmentsTable
 import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 import infrastructure.persistence.tables.ShipmentsTable._
 import mappers.ShipmentRowMapper
+
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
@@ -64,5 +65,31 @@ class SlickShipmentRepository @Inject()(dbConfigProvider: DatabaseConfigProvider
         .result
     ).map(_.map(mapper.fromRow))
   }
+
+  override def uploadProofOfDelivery(
+                                      shipmentId: UUID,
+                                      proof: ProofOfDelivery
+                                    ): Future[Option[Shipment]] = {
+
+    val action =
+      q.filter(_.id === shipmentId)
+        .result
+        .head
+        .flatMap { existingRow =>
+
+          val updatedProofs = existingRow.proofOfDelivery :+ proof
+
+          q.filter(_.id === shipmentId)
+            .map(_.proofOfDelivery)
+            .update(updatedProofs)
+            .flatMap { _ =>
+              q.filter(_.id === shipmentId).result.head.map(row => Some(row))
+            }
+        }
+
+    db.run(action.transactionally)
+      .map(_.map(mapper.fromRow))
+  }
+
 
 }

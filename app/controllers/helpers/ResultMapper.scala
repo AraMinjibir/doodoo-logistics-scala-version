@@ -1,7 +1,6 @@
 package controllers.helpers
 
-import domain.errors.DomainError
-import domain.errors._
+import domain.errors.{DomainError, _}
 import play.api.Logger
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc.Results._
@@ -18,6 +17,16 @@ trait ResultMapper {
    */
   def toResult(error: DomainError): Result = error match {
     case DatabaseError(c) => InternalServerError(Json.obj("error" -> "A database error occurred"))
+    case DuplicateEntity => BadRequest(Json.obj())
+    case ForeignKeyViolation => BadRequest(Json.obj())
+    case NullConstraintViolation => BadRequest(Json.obj())
+    case CheckConstraintViolation => BadRequest(Json.obj())
+    case DataTooLong => BadRequest(Json.obj())
+    case InvalidDataFormat => BadRequest(Json.obj())
+    case NumericOverflow => BadRequest(Json.obj())
+    case DeadlockDetected => BadRequest(Json.obj())
+    case TransactionTimeout => BadRequest(Json.obj())
+    case SerializationFailure => BadRequest(Json.obj())
     case GenericError(m)  => BadRequest(Json.obj("error" -> m))
     case ValidationError(msg) => BadRequest(Json.obj("error" -> msg))
     case ShipmentCreationError(msg) => BadRequest(Json.obj("error" -> msg))

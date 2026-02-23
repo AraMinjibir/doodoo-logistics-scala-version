@@ -51,6 +51,21 @@ case object TransactionTimeout extends DomainError {
 case object SerializationFailure extends DomainError {
   val message = "The transaction could not be serialized due to concurrent access."
 }
+case object ProofMustContainImageOrNote extends DomainError {
+  val message = "Proof of delivery must contain either an image or a note."
+}
+
+case object SubmittedByEmpty extends DomainError {
+  val message = "submittedBy must not be empty."
+}
+
+case object ShipmentNotDelivered extends DomainError {
+  val message = "Shipment is not delivered yet."
+}
+
+case object DuplicateProofOfDelivery extends DomainError {
+  val message = "Duplicate proof detected."
+}
 
 //Generic failure
 
@@ -80,6 +95,9 @@ final case class InvalidShipmentStatusTransition(
     s"Invalid shipment status transition from ${ShipmentStatus.toString(from)} to ${ShipmentStatus.toString(to)}"
 }
 
+case class UpdateProofOfDeliveryError(cause: String) extends DomainError {
+  val message = s"Unable to update the proof of delivery: $cause"
+}
 
   case class ValidationError(message: String) extends DomainError
   case class GenericError(message: String) extends DomainError

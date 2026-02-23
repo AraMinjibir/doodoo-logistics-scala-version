@@ -1,7 +1,7 @@
 package domain.services.impl
 import controllers.helpers.ResultMapper
-import domain.errors.{DomainError, ShipmentNotFound, ShipmentNotFoundById, UpdateShipmentStatusError}
-import domain.models.{Dimensions, PackageDetails, Recipient, Shipment, ShipmentStatus, TrackingEvent}
+import domain.errors.{DomainError, ShipmentNotFound, ShipmentNotFoundById, UpdateProofOfDeliveryError, UpdateShipmentStatusError}
+import domain.models.{ProofOfDelivery, Shipment, ShipmentStatus}
 import domain.services.ShipmentService
 import repositories.ShipmentRepository
 
@@ -34,16 +34,12 @@ class ShipmentServiceImpl @Inject()(
   override def getShipmentByTrackingNumber(trackingNumber: String): Future[Option[Shipment]] = {
     repo.findByTrackingNumber(trackingNumber)
   }
-
   override def getShipmentById(id: UUID): Future[Option[Shipment]] = {
     repo.getById(id)
   }
-
   override def getShipmentByStatus(shipmentStatus: ShipmentStatus): Future[Seq[Shipment]] = {
     repo.getByStatus(shipmentStatus)
   }
-
-  // UPDATE STATUS
   override def updateShipmentStatus(
                                      trackingNumber: String,
                                      status: ShipmentStatus,
@@ -85,14 +81,9 @@ class ShipmentServiceImpl @Inject()(
         }
     }
   }
-
-  // LIST ALL
   override def listShipments(offset: Int, limit: Int): Future[Seq[Shipment]] = {
     repo.listAll(offset: Int, limit: Int)
   }
-
-    // DELETE
-
   override def deleteShipment(id: UUID): Future[Either[String, Unit]] = {
     repo.delete(id).map {
       case Success(0) =>
@@ -105,5 +96,46 @@ class ShipmentServiceImpl @Inject()(
         Left(ex.getMessage)
     }
   }
+
+  override def uploadProofOfDelivery(
+                                      trackingNumber: String,
+                                      proof: ProofOfDelivery
+                                    ): Future[Either[List[DomainError], Shipment]] = {
+
+    ProofOfDelivery
+      .createProofOfDelivery(
+        image = proof.image,
+        note = proof.note,
+        submittedBy = proof.submittedBy,
+        submittedAt = proof.submittedAt
+      ) match {
+
+      case Left(errors) =>
+        Future.successful(Left(errors))
+
+      case Right(validProof) =>
+        repo.findByTrackingNumber(trackingNumber).flatMap {
+
+          case None =>
+            Future.successful(Left(List[DomainError](ShipmentNotFound(trackingNumber))))
+
+          case Some(shipment) =>
+            shipment.attachProofOfDelivery(validProof) match {
+
+              case Left(error) =>
+                Future.successful(Left(List[DomainError](error)))
+
+              case Right(_) =>
+                repo.uploadProofOfDelivery(shipment.id, validProof).map {
+                  case None =>
+                    Left(List(UpdateProofOfDeliveryError("Persistence failure")))
+                  case Some(saved) =>
+                    Right(saved)
+                }
+            }
+        }
+    }
+  }
+
 
 }

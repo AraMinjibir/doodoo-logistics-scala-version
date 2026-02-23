@@ -33,14 +33,10 @@ Customer / Sender
 • Visibility: Real-time tracking and access to the complete lifecycle history of their packages.
 
 Recipient (The Consignee)
-• Inbound Visibility: Track all incoming packages linked to the user's verified identity (phone/ 
-   email).
+• Tracking: Track all incoming packages using the tracking number received from the sender via the email address provided.
 
-• Dynamic Delivery Instructions: Provide real-time notes to Service Providers to ensure 
-  successful first-time delivery.
-
-• Delivery Confirmation: Access official Proof of Delivery (PoD) data once a shipment reaches the 
-  final state.
+• Delivery Confirmation: Provide an official Proof of Delivery (PoD) data once a shipment reaches the 
+  final state(shipment status = delivered).
 
 Service Provider (Courier)
 • Logistics Progression: Responsible for moving shipments through active states (Accept, In 
@@ -157,3 +153,5 @@ docker-compose up -d
 
 # Run the Play application
 sbt run
+
+
