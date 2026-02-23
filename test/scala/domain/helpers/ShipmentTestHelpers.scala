@@ -135,7 +135,7 @@ def uploadProofOfDelivery: ProofOfDelivery = {
     )
   }
   // Default valid template
-  def validCreatePayload(): JsValue =
+  def validCreatePayload: JsValue =
     Json.obj(
       "senderName" -> "Ara Minjibir",
 
@@ -157,6 +157,13 @@ def uploadProofOfDelivery: ProofOfDelivery = {
       "contents" -> "Clothing"
     )
 
+  def proofPayload = Json.obj(
+    "image" -> "https://doodooImage.png",
+    "note" -> "Delivered successfully",
+    "submittedBy" -> "Ara",
+    "submittedAt" -> "2025-01-01T10:00:00Z"
+  )
+
 
   // Template for testing validation failures
   def invalidCreatePayload: JsObject = Json.obj(
@@ -167,7 +174,7 @@ def uploadProofOfDelivery: ProofOfDelivery = {
 
   def seedShipment(app: Application, sender: String = "Seed User"): Unit = {
     val request: FakeRequest[AnyContentAsJson] = FakeRequest(POST, "/shipments")
-      .withJsonBody(validCreatePayload())
+      .withJsonBody(validCreatePayload)
 
     // result is a Future[Result], we await it to ensure DB is seeded before test continues
     val result = route(app, request).get

@@ -49,7 +49,7 @@ class ShipmentApiSpec extends PlaySpec
   "Shipment API" should {
 
     "create a new shipment via POST" in {
-      val request = FakeRequest(POST, "/shipments").withJsonBody(validCreatePayload())
+      val request = FakeRequest(POST, "/shipments").withJsonBody(validCreatePayload)
       val result = route(app, request).get
 
       status(result) mustBe CREATED

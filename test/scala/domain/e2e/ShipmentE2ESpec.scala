@@ -4,8 +4,10 @@ import com.dimafeng.testcontainers.{ForAllTestContainer, PostgreSQLContainer}
 import org.scalatestplus.play._
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
 import play.api.test.Helpers._
+
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 import scala.domain.helpers.ShipmentTestHelpers
@@ -53,7 +55,7 @@ class ShipmentE2ESpec
 
       // 1. CREATE
       val createResponse = Await.result(
-        wsClient.url(baseUrl).post(validCreatePayload()),
+        wsClient.url(baseUrl).post(validCreatePayload),
         10.seconds
       )
 
@@ -84,6 +86,52 @@ class ShipmentE2ESpec
       response.status mustBe OK
       val json = response.json
       (json \ "metadata" \ "count").as[Int] must be >= 1
+
+
+//      Transition to deliver
+
+// Created → InTransit
+    val inTransitResponse = Await.result(
+      wsClient
+        .url(s"$baseUrl/tracking/$trackingNumber/status")
+        .patch(Json.obj("status" -> "InTransit")),
+      5.seconds
+    )
+
+      inTransitResponse.status mustBe OK
+
+      // InTransit → OutForDelivery
+      val outForDeliveryResponse = Await.result(
+        wsClient
+          .url(s"$baseUrl/tracking/$trackingNumber/status")
+          .patch(Json.obj("status" -> "OutForDelivery")),
+        5.seconds
+      )
+
+      outForDeliveryResponse.status mustBe OK
+      // InTransit → OutForDelivery
+      val deliverResponse = Await.result(
+        wsClient
+          .url(s"$baseUrl/tracking/$trackingNumber/status")
+          .patch(Json.obj("status" -> "Delivered")),
+        5.seconds
+      )
+
+      println("DELIVER RESPONSE BODY:")
+      println(deliverResponse.body)
+
+      deliverResponse.status mustBe OK
+
+      val proofResponse = Await.result(
+        wsClient
+          .url(s"$baseUrl/tracking/$trackingNumber/proof-of-delivery")
+          .post(proofPayload),
+        5.seconds
+      )
+
+      proofResponse.status mustBe OK
+      (proofResponse.json \ "status").as[String] mustBe "Delivered"
     }
+
   }
 }
