@@ -45,13 +45,17 @@ Service Provider (Courier)
 • Metadata Entry: Submitting delivery notes and proof-of-delivery timestamps.
 
 Support Agent (Operational Integrity)
-• Advanced Observability: Search and filter shipments by tracking number, status, or date range 
- to resolve inquiries.
 
-• Ticket Management: Creating and managing support tickets linked to specific shipments and users.
+• Shipment Lookup & Inquiry Resolution
+Provides support agents with the ability to search and filter shipments by tracking number and by status in order to quickly resolve
+customer inquiries.
 
-• Anomaly Detection: Identifying "stuck" shipments that have failed to progress within expected 
-  SLAs.
+• Complaint Management
+Enables users to submit complaints linked to specific shipments, and allows agents to review, track, and resolve these cases
+through a simple status-based workflow.
+
+• Shipment Attention Monitoring
+Identifies shipments that have not progressed within expected timeframes and flags them for manual review by support agents.
 
 Administrator
 • System Oversight: Full read/write access to all entities.
