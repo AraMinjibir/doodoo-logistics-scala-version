@@ -3,7 +3,6 @@ package controllers.json
 import domain.models.ShipmentStatus
 import domain.models.ShipmentStatus.fromString
 import play.api.libs.json._
-import play.api.mvc.PathBindable
 
 object ShipmentStatusJson {
 
