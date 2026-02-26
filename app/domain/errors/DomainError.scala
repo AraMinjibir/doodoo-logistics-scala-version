@@ -1,6 +1,6 @@
 package domain.errors
 
-import domain.models.ShipmentStatus
+import domain.models.{ComplaintStatus, ShipmentStatus}
 
 import java.util.UUID
 
@@ -101,4 +101,22 @@ case class UpdateProofOfDeliveryError(cause: String) extends DomainError {
 
   case class ValidationError(message: String) extends DomainError
   case class GenericError(message: String) extends DomainError
+case class ComplaintValidation(errors: List[String]) extends DomainError {
+  val message = "Complaint is not validated."
+}
+case class CommentValidation(errors: List[String]) extends DomainError {
+  val message = "Comment is not validated."
+}
+
+final case class ComplaintNotFound(complaintId: String) extends DomainError {
+  val message = s"Complaint $complaintId not found"
+}
+final case class InvalidComplaintState(
+                                        from: ComplaintStatus,
+                                        to: ComplaintStatus
+                                                ) extends DomainError {
+  val message =
+    s"Invalid complaint status transition from ${ComplaintStatus.toString(from)} to ${ComplaintStatus.toString(to)}"
+}
+
 

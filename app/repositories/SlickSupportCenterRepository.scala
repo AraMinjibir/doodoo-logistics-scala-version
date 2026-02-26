@@ -51,16 +51,17 @@ class SlickSupportCenterRepository @Inject()(
   }
 
  override def addComment(complaintId: UUID, newComment: Comment): Future[Try[Int]]  = {
-    val action =
-      for {
-        existing <- q.filter(_.id === complaintId).result.head
-        updatedComments = existing.comment :+ newComment
-        rowsUpdated <- q.filter(_.id === complaintId)
-          .map(_.comment)
-          .update(updatedComments)
-      } yield rowsUpdated
+   val action =
+     q.filter(_.id === complaintId)
+       .result
+       .head
+       .flatMap { existing =>
+         q.filter(_.id === complaintId)
+           .map(_.comment)
+           .update(existing.comment :+ newComment)
+       }
 
-    db.run(action.transactionally.asTry)
+   db.run(action.transactionally.asTry)
   }
 
 
