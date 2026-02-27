@@ -1,13 +1,14 @@
 package domain.services.impl
 
 import com.google.inject.{Inject, Singleton}
+import controllers.SupportCenterController
 import controllers.helpers.ResultMapper
 import domain.errors.{CommentValidation, ComplaintNotFound, ComplaintValidation, DomainError, InvalidComplaintState, ValidationError}
 import domain.models.{Comment, Complaint, ComplaintStatus}
 import domain.services.SupportCenterService
+import play.api.Logger
 import repositories.SupportCenterRepository
 
-import java.time.Instant
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
@@ -18,6 +19,9 @@ class SupportCenterServiceImpl @Inject()(
                                         )(implicit ec:ExecutionContext)
                                         extends SupportCenterService with ResultMapper {
 
+  private val logger = Logger(classOf[SupportCenterController])
+
+
   override def createComplaint(complaint: Complaint): Future[Either[DomainError,Complaint]] = {
     Complaint.validComplaint(complaint) match {
       case Left(errors) =>
@@ -26,7 +30,9 @@ class SupportCenterServiceImpl @Inject()(
       case Right(validComplaint) =>
         repo.createComplaint(validComplaint).map{
           case Success(_) => Right(validComplaint)
-          case Failure(ex) => Left(mapInsertException(ex))
+          case Failure(ex) =>
+            logger.error("Database failure", ex)
+            Left(mapInsertException(ex))
       }
     }
   }
@@ -49,10 +55,10 @@ class SupportCenterServiceImpl @Inject()(
       }
     }
   }
-  override def markComplaintAsResolved(complaintId: UUID, agentId: UUID, now: Instant):Future[Either[DomainError, Complaint]] = {
+  override def markComplaintAsResolved(complaintId: UUID, agentId: UUID):Future[Either[DomainError, Complaint]] = {
     repo.getComplaintById(complaintId).flatMap{
       case None => Future.successful(Left(ComplaintNotFound(complaintId.toString)))
-      case Some(definedComplaint) => definedComplaint.resolve(agentId, now) match {
+      case Some(definedComplaint) => definedComplaint.resolve(agentId) match {
         case Left(InvalidComplaintState(from, to)) => Future.successful(Left(InvalidComplaintState(from, to)))
         case Right(updatedComplaint) => repo.updateComplaintStatus(updatedComplaint).map{
           case Success(_) => Right(updatedComplaint)
@@ -61,7 +67,7 @@ class SupportCenterServiceImpl @Inject()(
       }
     }
   }
-  override def addComment(newComment: Comment): Future[Either[DomainError, Comment]] = {
+  override def addComment(complaintId: UUID, newComment: Comment): Future[Either[DomainError, Comment]] = {
 
     Comment.validComment(newComment) match {
       case Left(err) => Future.successful(Left(CommentValidation(err)))

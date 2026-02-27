@@ -101,6 +101,8 @@ case class UpdateProofOfDeliveryError(cause: String) extends DomainError {
 
   case class ValidationError(message: String) extends DomainError
   case class GenericError(message: String) extends DomainError
+
+//Support center
 case class ComplaintValidation(errors: List[String]) extends DomainError {
   val message = "Complaint is not validated."
 }
@@ -109,7 +111,7 @@ case class CommentValidation(errors: List[String]) extends DomainError {
 }
 
 final case class ComplaintNotFound(complaintId: String) extends DomainError {
-  val message = s"Complaint $complaintId not found"
+  val message = s"Complaint with id: $complaintId is not found"
 }
 final case class InvalidComplaintState(
                                         from: ComplaintStatus,
@@ -117,6 +119,9 @@ final case class InvalidComplaintState(
                                                 ) extends DomainError {
   val message =
     s"Invalid complaint status transition from ${ComplaintStatus.toString(from)} to ${ComplaintStatus.toString(to)}"
+}
+case class ComplaintCreationError(cause: String) extends DomainError {
+  val message = s"Unable to create the complaint: $cause"
 }
 
 

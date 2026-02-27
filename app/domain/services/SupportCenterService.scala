@@ -14,7 +14,7 @@ trait SupportCenterService {
   def getComplaintByStatus(status:ComplaintStatus): Future[Seq[Complaint]]
   def getAllComplaint:Future[Seq[Complaint]]
   def markComplaintAsInProgress( complaintId: UUID):Future[Either[DomainError, Complaint]]
-  def markComplaintAsResolved(complaintId: UUID, agentId: UUID, now: Instant):Future[Either[DomainError, Complaint]]
-  def addComment(newComment: Comment): Future[Either[DomainError, Comment]]
+  def markComplaintAsResolved(complaintId: UUID, agentId: UUID):Future[Either[DomainError, Complaint]]
+  def addComment(complaintId: UUID, newComment: Comment): Future[Either[DomainError, Comment]]
 
 }

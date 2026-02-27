@@ -11,7 +11,6 @@ case class Comment private(
                          complaintId: UUID,
                          authorId: UUID,
                          message: String,
-                        internal: Boolean,
                          createdAt : Instant
                            )
 
@@ -37,12 +36,12 @@ case class Complaint private(
         Left(InvalidComplaintState(current, ComplaintStatus.InProgress))
     }
 
-  def resolve(agentId: UUID, now: Instant):  Either[(InvalidComplaintState), Complaint] =
+  def resolve(agentId: UUID):  Either[(InvalidComplaintState), Complaint] =
     status match {
-      case ComplaintStatus.Open | ComplaintStatus.InProgress =>
+      case  ComplaintStatus.InProgress =>
         Right(copy(
           status = ComplaintStatus.Resolved,
-          resolvedAt = Some(now),
+          resolvedAt = Some(Instant.now()),
           resolvedBy = Some(agentId)
         ))
       case current =>
@@ -86,11 +85,10 @@ object Complaint {
   }
 }
 object Comment {
-  def createComment(id: UUID,
+  def createComment(
                     complaintId: UUID,
                     authorId: UUID,
                     message: String,
-                    internal: Boolean,
                     ):Either[List[String],Comment] = {
     val errors: List[String] = List(
       Option.when(complaintId.toString.trim.isEmpty)(s"Complain id must not be empty: $complaintId"),
@@ -101,7 +99,7 @@ object Comment {
       Either.cond(
         errors.isEmpty,
         Comment(id = UUID.randomUUID(), complaintId = complaintId,
-          authorId = authorId, message = message, internal = internal, createdAt = Instant.now()),
+          authorId = authorId, message = message, createdAt = Instant.now()),
         errors
       )
 
@@ -109,11 +107,9 @@ object Comment {
 
   def validComment(c:Comment): Either[List[String],Comment] = {
     Comment.createComment(
-      id = c.id,
       complaintId = c.complaintId,
       authorId = c.authorId,
-      message = c.message,
-      internal = c.internal
+      message = c.message
     )
   }
 }

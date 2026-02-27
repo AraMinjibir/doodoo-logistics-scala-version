@@ -14,8 +14,8 @@ class SupportCenterTable(tag: Tag) extends Table[SupportCenterRow](tag, "support
   import SupportCenterTable._
 
   def id = column[UUID]("id",O.PrimaryKey)
-  def userId = column[UUID]("userId")
-  def shipmentId = column[UUID]("shipmentId")
+  def userId = column[UUID]("user_id")
+  def shipmentId = column[UUID]("shipment_id")
   def subject = column[String]("subject")
   def descrription = column[String]("description")
   def status = column[ComplaintStatus]("status")
