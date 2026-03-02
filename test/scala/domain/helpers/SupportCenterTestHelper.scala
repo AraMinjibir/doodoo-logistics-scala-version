@@ -1,6 +1,6 @@
 package scala.domain.helpers
 
-import domain.models.{Complaint, ComplaintStatus}
+import domain.models.{Comment, Complaint, ComplaintStatus}
 
 import java.time.Instant
 import java.util.UUID
@@ -16,6 +16,9 @@ trait SupportCenterTestHelper {
   val complaintStatus = ComplaintStatus.InProgress
   val resolvedComplaintStatus = ComplaintStatus.Resolved
   val authorId = UUID.fromString("11111111-1111-1111-1111-111111111111")
+  val complaintId = UUID.fromString("11111111-1111-1111-1111-111111111111")
+  val agentId = UUID.fromString("11111111-1111-1111-1111-111111111111")
+
 
 
   def createComplaint(
@@ -53,5 +56,6 @@ trait SupportCenterTestHelper {
       identity
     )
 
+  val complaintPass = newComplaint(shipmentId = id)
 
 }
