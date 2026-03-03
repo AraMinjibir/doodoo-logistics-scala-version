@@ -40,14 +40,6 @@ private[controllers] case class ComplaintRequestDto(
 object ComplaintRequestDto {
   implicit val format:OFormat[ComplaintRequestDto] = Json.format[ComplaintRequestDto]
 
-  def fromDomain(domain:Complaint): ComplaintRequestDto = {
-    ComplaintRequestDto(
-      userId = domain.userId,
-      shipmentId = domain.shipmentId,
-      subject = domain.subject,
-      description = domain.description
-    )
-  }
 }
 object CommentRequestDto {
   implicit val format:OFormat[ CommentRequestDto] = Json.format[ CommentRequestDto]
