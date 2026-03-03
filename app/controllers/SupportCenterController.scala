@@ -25,7 +25,7 @@ class SupportCenterController @Inject()(
         case Left(err) => Future.successful(BadRequest(Json.toJson(err)))
         case Right(validComplaint) =>
         supportCenterService.createComplaint(validComplaint).map{
-          case Right(saved) => Created(Json.toJson(ComplaintRequestDto.fromDomain(saved)))
+          case Right(saved) => Created(Json.toJson(ComplaintResponseDto.toDto(saved)))
           case Left(error) => toResult(error)
         }.recover{
           case e =>
