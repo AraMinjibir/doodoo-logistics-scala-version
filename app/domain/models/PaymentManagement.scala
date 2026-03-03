@@ -4,14 +4,13 @@ import java.time.Instant
 import java.util.UUID
 
 case class PaymentManagement private(
-                                      id:UUID,
                                       customerId: UUID,
                                       shipmentId:UUID,
                                       amount:BigDecimal,
                                       status: PaymentStatus,
                                       paidAt: Instant,
                                       paymentMethod: PaymentMethod,
-                                      referenceNumber:Option[String]
+                                      referenceNumber:String
                   )
 
 object PaymentManagement {
@@ -37,14 +36,13 @@ object PaymentManagement {
     Either.cond(
       errors.isEmpty,
       PaymentManagement(
-        id = UUID.randomUUID(),
         customerId = customerId,
         shipmentId = shipmentId,
         amount = amount,
         status = PaymentStatus.Pending,
         paidAt  = Instant.now(),
         paymentMethod = paymentMethod,
-        referenceNumber = Some( PaymentManagement.generateReferenceNumber())
+        referenceNumber =  PaymentManagement.generateReferenceNumber()
     ),
       errors)
   }

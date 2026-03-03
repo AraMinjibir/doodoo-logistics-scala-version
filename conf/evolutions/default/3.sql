@@ -1,7 +1,6 @@
         --Ups
 
         CREATE TABLE payments(
-        id UUID PRIMARY KEY,
         customer_id UUID NOT NULL,
         shipment_id UUID NOT NULL,
         amount NUMERIC(12,2) NOT NULL,
@@ -9,7 +8,7 @@
         status TEXT NOT NULL,
         paid_at TIMESTAMP WITH TIME ZONE NOT NULL,
         payment_method  TEXT NOT NULL,
-        reference_number TEXT,
+        reference_number TEXT PRIMARY KEY,
 
         CONSTRAINT shipment_foreign_key
         FOREIGN KEY (shipment_id)

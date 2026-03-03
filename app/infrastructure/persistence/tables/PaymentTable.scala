@@ -13,19 +13,18 @@ class PaymentTable(tag:Tag) extends Table[PaymentRow](tag,"payments") {
 
   import PaymentTable._
 
-  def id = column[UUID]("id", O.PrimaryKey)
   def customerId = column[UUID]("customer_id")
   def shipmentId = column[UUID]("shipment_id")
   def amount = column[BigDecimal]("amount")
   def status = column[PaymentStatus]("status")
   def  paidAt = column[Instant]("paid_at")
   def paymentMethod = column[PaymentMethod]("payment_method")
-  def referenceNumber = column[Option[String]]("reference_number")
+  def referenceNumber = column[String]("reference_number", O.PrimaryKey)
 
   def paymentFrk = foreignKey("shipment_foreign_key", shipmentId, ShipmentsTable.table)(_.id, onDelete = Cascade)
 
   def * :ProvenShape[PaymentRow] = (
-    id,customerId,shipmentId,amount,status,paidAt,paymentMethod,referenceNumber
+    customerId,shipmentId,amount,status,paidAt,paymentMethod,referenceNumber
   ) <> ((PaymentRow.apply _).tupled, PaymentRow.unapply)
 
 }
