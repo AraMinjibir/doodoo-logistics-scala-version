@@ -4,14 +4,14 @@ import java.time.Instant
 import java.util.UUID
 
 case class PaymentManagement private(
-                    id:UUID,
-                    customerId: UUID,
-                    shipmentId:UUID,
-                    amount:BigDecimal,
-                    status: PaymentStatus,
-                    timestamp: Instant,
-                    paymentMethod: PaymentMethod,
-                    referenceNumber:Option[String]
+                                      id:UUID,
+                                      customerId: UUID,
+                                      shipmentId:UUID,
+                                      amount:BigDecimal,
+                                      status: PaymentStatus,
+                                      paidAt: Instant,
+                                      paymentMethod: PaymentMethod,
+                                      referenceNumber:Option[String]
                   )
 
 object PaymentManagement {
@@ -42,7 +42,7 @@ object PaymentManagement {
         shipmentId = shipmentId,
         amount = amount,
         status = PaymentStatus.Pending,
-        timestamp  = Instant.now(),
+        paidAt  = Instant.now(),
         paymentMethod = paymentMethod,
         referenceNumber = Some( PaymentManagement.generateReferenceNumber())
     ),
