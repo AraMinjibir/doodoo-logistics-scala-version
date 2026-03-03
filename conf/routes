@@ -27,4 +27,17 @@ DELETE  /shipments/:shipmentId             controllers.ShipmentController.delete
 #Upload proof of delivery
 POST /shipments/tracking/:trackingNumber/proof-of-delivery      controllers.ShipmentController.uploadProofOfDelivery(trackingNumber: String)
 
+# Create complaint
+POST    /complaints                               controllers.SupportCenterController.sendComplaint
+
+# Get complaints
+GET     /complaints                               controllers.SupportCenterController.getAllComplaint
+GET     /complaints/:complaintId                  controllers.SupportCenterController.getComplaintById(complaintId: java.util.UUID)
+GET     /complaints/status/:status                controllers.SupportCenterController.getComplaintByStatus(status: domain.models.ComplaintStatus)
+
+# State transitions
+PATCH   /complaints/:complaintId/in-progress        controllers.SupportCenterController.markComplaintAsInProgress(complaintId: java.util.UUID)
+PATCH   /complaints/:complaintId/resolve/:agentId   controllers.SupportCenterController.markComplaintAsResolved(complaintId: java.util.UUID, agentId: java.util.UUID)
+
+POST /complaints/:complaintId/comments              controllers.SupportCenterController.addComment(complaintId: java.util.UUID)
 

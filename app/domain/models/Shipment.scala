@@ -1,5 +1,5 @@
 package domain.models
-import domain.errors.{DomainError, DuplicateProofOfDelivery, InvalidShipmentStatusTransition, ProofMustContainImageOrNote, ShipmentNotDelivered, SubmittedByEmpty}
+import domain.errors.{DomainError, DuplicateProofOfDelivery, ProofMustContainImageOrNote, ShipmentNotDelivered, SubmittedByEmpty}
 import domain.models.ShipmentStatus.{Created, Delivered}
 
 import java.time.Instant

@@ -1,6 +1,7 @@
 package controllers.helpers
 
 import domain.errors.{DomainError, _}
+import domain.models.ComplaintStatus
 import play.api.Logger
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc.Results._
@@ -16,7 +17,7 @@ trait ResultMapper {
    * Maps a DomainError to a standard Play Result
    */
   def toResult(error: DomainError): Result = error match {
-    case DatabaseError(c) => InternalServerError(Json.obj("error" -> "A database error occurred"))
+    case DatabaseError(c) => InternalServerError(Json.obj("error" -> s"A database error occurred: $c"))
     case DuplicateEntity => BadRequest(Json.obj())
     case ForeignKeyViolation => BadRequest(Json.obj())
     case NullConstraintViolation => BadRequest(Json.obj())
@@ -31,7 +32,16 @@ trait ResultMapper {
     case ValidationError(msg) => BadRequest(Json.obj("error" -> msg))
     case ShipmentCreationError(msg) => BadRequest(Json.obj("error" -> msg))
     case UpdateShipmentStatusError(msg) => BadRequest(Json.obj("error" -> msg))
-  }
+    case ComplaintCreationError(msg) => BadRequest(Json.obj("error" -> msg))
+    case InvalidComplaintState(from, to) =>
+      Conflict(
+        Json.obj(
+          "code"    -> "INVALID_COMPLAINT_STATE",
+          "message" -> error.message,
+          "from"    -> from.toString,
+          "to"      -> to.toString
+        )
+      )  }
 
   /**
    * Standardizes JSON validation error responses
