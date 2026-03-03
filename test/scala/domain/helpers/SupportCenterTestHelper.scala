@@ -1,6 +1,6 @@
 package scala.domain.helpers
 
-import domain.models.{Comment, Complaint, ComplaintStatus}
+import domain.models.{Complaint, ComplaintStatus}
 
 import java.time.Instant
 import java.util.UUID
@@ -55,6 +55,7 @@ trait SupportCenterTestHelper {
       errors => throw new RuntimeException(errors.mkString(",")),
       identity
     )
+
 
   val complaintPass = newComplaint(shipmentId = id)
 
