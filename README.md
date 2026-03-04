@@ -75,6 +75,13 @@ require intervention.
 Ensures shipment progression aligns with payment confirmation, preventing dispatch of unpaid shipments and supporting 
 accurate financial reconciliation.
 
+•Revenue Reporting Capabilities
+Implemented time-based revenue aggregation (daily, weekly, monthly)
+Designed half-open interval date filtering ([start, end)) for accurate financial boundaries
+Leveraged database-level aggregation (SUM) via Slick for performance efficiency
+Ensured monetary correctness using BigDecimal
+Centralized revenue logic using a reusable revenueBetween abstraction.
+
 Administrator
 • System Oversight: Full read/write access to all entities.
 
