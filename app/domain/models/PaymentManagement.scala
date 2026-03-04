@@ -3,7 +3,7 @@ package domain.models
 import java.time.Instant
 import java.util.UUID
 
-case class PaymentManagement private(
+case class Payment private(
                                       customerId: UUID,
                                       shipmentId:UUID,
                                       amount:BigDecimal,
@@ -13,7 +13,7 @@ case class PaymentManagement private(
                                       referenceNumber:String
                   )
 
-object PaymentManagement {
+object Payment {
 
   def generateReferenceNumber(prefix: String = "RF-DODO"): String = {
     val id = UUID.randomUUID().toString.replace("-", "").take(10).toUpperCase
@@ -35,14 +35,14 @@ object PaymentManagement {
     ).flatten
     Either.cond(
       errors.isEmpty,
-      PaymentManagement(
+      Payment(
         customerId = customerId,
         shipmentId = shipmentId,
         amount = amount,
         status = PaymentStatus.Pending,
         paidAt  = Instant.now(),
         paymentMethod = paymentMethod,
-        referenceNumber =  PaymentManagement.generateReferenceNumber()
+        referenceNumber =  Payment.generateReferenceNumber()
     ),
       errors)
   }
