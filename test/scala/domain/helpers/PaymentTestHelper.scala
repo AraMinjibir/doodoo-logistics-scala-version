@@ -32,7 +32,9 @@ trait PaymentTestHelper {
         status = PaymentStatus.Pending,
         paidAt  = Instant.now(),
         paymentMethod = paymentMethod,
-        referenceNumber =  Payment.generateReferenceNumber()
+        referenceNumber =  Payment.generateReferenceNumber(),
+        gatewayTransactionId = None,
+        failureReason = None
       ),
       errors)
   }

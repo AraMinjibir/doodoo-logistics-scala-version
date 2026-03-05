@@ -20,11 +20,13 @@ class PaymentTable(tag:Tag) extends Table[PaymentRow](tag,"payments") {
   def  paidAt = column[Instant]("paid_at")
   def paymentMethod = column[PaymentMethod]("payment_method")
   def referenceNumber = column[String]("reference_number", O.PrimaryKey)
+  def gatewayTransactionId = column[Option[String]]("gateway_transaction_id")
+  def failureReason = column [Option[String]]("failure_reason")
 
   def paymentFrk = foreignKey("shipment_foreign_key", shipmentId, ShipmentsTable.table)(_.id, onDelete = Cascade)
 
   def * :ProvenShape[PaymentRow] = (
-    customerId,shipmentId,amount,status,paidAt,paymentMethod,referenceNumber
+    customerId,shipmentId,amount,status,paidAt,paymentMethod,referenceNumber,gatewayTransactionId,failureReason
   ) <> ((PaymentRow.apply _).tupled, PaymentRow.unapply)
 
 }

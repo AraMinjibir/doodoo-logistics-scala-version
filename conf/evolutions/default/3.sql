@@ -9,6 +9,8 @@
         paid_at TIMESTAMP WITH TIME ZONE NOT NULL,
         payment_method  TEXT NOT NULL,
         reference_number TEXT PRIMARY KEY,
+        gateway_transaction_id TEXT,
+        failure_reason TEXT.
 
         CONSTRAINT shipment_foreign_key
         FOREIGN KEY (shipment_id)

@@ -12,5 +12,7 @@ case class PaymentRow(
                        status: PaymentStatus,
                        paidAt: Instant,
                        paymentMethod: PaymentMethod,
-                       referenceNumber:String
+                       referenceNumber:String,
+                       gatewayTransactionId: Option[String],
+                       failureReason: Option[String]
                      )

@@ -10,7 +10,9 @@ case class Payment private(
                                       status: PaymentStatus,
                                       paidAt: Instant,
                                       paymentMethod: PaymentMethod,
-                                      referenceNumber:String
+                                      referenceNumber:String,
+                                      gatewayTransactionId: Option[String],
+                                      failureReason: Option[String]
                   )
 
 object Payment {
@@ -42,9 +44,26 @@ object Payment {
         status = PaymentStatus.Pending,
         paidAt  = Instant.now(),
         paymentMethod = paymentMethod,
-        referenceNumber =  Payment.generateReferenceNumber()
+        referenceNumber =  Payment.generateReferenceNumber(),
+        gatewayTransactionId = None,
+        failureReason = None
     ),
       errors)
   }
+
+  def canTransition(
+                     from: PaymentStatus,
+                     to: PaymentStatus
+                   ): Boolean = {
+
+    (from, to) match {
+
+      case (PaymentStatus.Pending, PaymentStatus.Successful) => true
+      case (PaymentStatus.Pending, PaymentStatus.Failed)     => true
+
+      case _ => false
+    }
+  }
+
 
 }

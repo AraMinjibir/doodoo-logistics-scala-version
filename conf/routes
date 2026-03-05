@@ -41,3 +41,7 @@ PATCH   /complaints/:complaintId/resolve/:agentId   controllers.SupportCenterCon
 
 POST /complaints/:complaintId/comments              controllers.SupportCenterController.addComment(complaintId: java.util.UUID)
 
+#Payment Management
+
+
+POST   /webhooks/payments    controllers.PaymentWebhookController.handleWebhook

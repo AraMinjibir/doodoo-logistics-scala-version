@@ -14,7 +14,8 @@ class PaymentMapper {
       status = domain.status,
       paidAt = domain.paidAt,
       paymentMethod = domain.paymentMethod,
-      referenceNumber = domain.referenceNumber
+      referenceNumber = domain.referenceNumber,
+      gatewayTransactionId = domain.gatewayTransactionId, failureReason = domain.failureReason
     )
   }
   def fromRow(row:PaymentRow):Payment = {
@@ -25,7 +26,9 @@ class PaymentMapper {
       status = row.status,
       paidAt = row.paidAt,
       paymentMethod = row.paymentMethod,
-      referenceNumber = row.referenceNumber
+      referenceNumber = row.referenceNumber,
+      gatewayTransactionId = row.gatewayTransactionId,
+      failureReason = row.failureReason
     )
   }
 
