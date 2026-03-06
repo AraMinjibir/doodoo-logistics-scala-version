@@ -43,5 +43,15 @@ POST /complaints/:complaintId/comments              controllers.SupportCenterCon
 
 #Payment Management
 
+POST   /payments/makePayment         controllers.PaymentController.makePayment
+POST   /webhooks/payments            controllers.PaymentController.handleWebhook
 
-POST   /webhooks/payments    controllers.PaymentWebhookController.handleWebhook
+GET   /payments/:ref                controllers.PaymentController.getPaymentById(ref: String)
+GET  /payment/status/:status        controllers.PaymentController.getPaymentByStatus(status:domain.model.PaymentStatus)
+GET  /payment/method/:method        controllers.PaymentController.getPaymentByMethod(method: domain.model.PaymentMethod)
+GET /payments                       controllers.PaymentController.getAllPayments
+DELETE /payment/:ref                controllers.PaymentController.deletePayment(ref: String)
+
+GET   /payments/revenue/daily     controllers.PaymentController.getDailyRevenue(date: String)
+GET   /payments/revenue/weekly    controllers.PaymentController.getWeeklyRevenue(date: String)
+GET   /payments/revenue/monthly   controllers.PaymentController.getMonthlyRevenue(year: Int, month: Int)
