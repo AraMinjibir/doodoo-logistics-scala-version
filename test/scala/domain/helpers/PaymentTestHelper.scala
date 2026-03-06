@@ -54,4 +54,18 @@ trait PaymentTestHelper {
                     identity
                   )
   }
+
+  def samplePayment: Payment =
+    generatePayment(
+      customerId = UUID.fromString("11111111-1111-1111-1111-111111111111"),
+      shipmentId = UUID.fromString("22222222-2222-2222-2222-222222222222"),
+      amount = BigDecimal(10000),
+      paymentMethod = PaymentMethod.Card
+    ) match {
+      case Right(payment) => payment
+      case Left(errors)   => throw new RuntimeException(errors.mkString(", "))
+    }
+
+
+
 }
