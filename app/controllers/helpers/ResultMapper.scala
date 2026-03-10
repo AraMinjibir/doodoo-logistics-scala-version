@@ -33,6 +33,7 @@ trait ResultMapper {
     case ShipmentCreationError(msg) => BadRequest(Json.obj("error" -> msg))
     case UpdateShipmentStatusError(msg) => BadRequest(Json.obj("error" -> msg))
     case ComplaintCreationError(msg) => BadRequest(Json.obj("error" -> msg))
+    case DuplicateError(msg) => BadRequest(Json.obj("error" -> msg))
     case InvalidComplaintState(from, to) =>
       Conflict(
         Json.obj(

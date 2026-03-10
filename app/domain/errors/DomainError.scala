@@ -124,4 +124,10 @@ case class ComplaintCreationError(cause: String) extends DomainError {
   val message = s"Unable to create the complaint: $cause"
 }
 
+case class DuplicateError(cause: String) extends DomainError {
+  val message = s"Payment already initiated: $cause"
+}
+
+
+
 

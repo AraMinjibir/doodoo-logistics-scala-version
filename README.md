@@ -57,6 +57,31 @@ through a simple status-based workflow.
 • Shipment Attention Monitoring
 Identifies shipments that have not progressed within expected timeframes and flags them for manual review by support agents.
 
+Payment Management (Financial Operations)
+
+• Payment Processing
+Enables customers to make payments for shipments using supported payment methods, ensuring each transaction 
+is securely recorded and linked to the corresponding shipment.
+
+• Payment Status Tracking
+Tracks the lifecycle of each payment from pending to successful, failed, or refunded, allowing both customers and 
+support agents to verify payment completion.
+
+• Notifications & Alerts
+Automatically notifies customers of successful or failed payments and informs support agents of any payment issues that 
+require intervention.
+
+• Integration with Shipment Flow
+Ensures shipment progression aligns with payment confirmation, preventing dispatch of unpaid shipments and supporting 
+accurate financial reconciliation.
+
+•Revenue Reporting Capabilities
+Implemented time-based revenue aggregation (daily, weekly, monthly)
+Designed half-open interval date filtering ([start, end)) for accurate financial boundaries
+Leveraged database-level aggregation (SUM) via Slick for performance efficiency
+Ensured monetary correctness using BigDecimal
+Centralized revenue logic using a reusable revenueBetween abstraction.
+
 Administrator
 • System Oversight: Full read/write access to all entities.
 

@@ -10,7 +10,7 @@ scalaVersion := "2.13.16"
 libraryDependencies ++= Seq(
   guice,
   evolutions,
-
+  ws,
   // Test
   "org.scalatestplus.play" %% "scalatestplus-play" % "7.0.2" % Test,
   "org.postgresql" % "postgresql" % "42.7.1",
