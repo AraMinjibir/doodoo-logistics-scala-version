@@ -1,0 +1,5 @@
+package mappers
+
+class UserMapper {
+
+}
