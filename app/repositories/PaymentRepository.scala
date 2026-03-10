@@ -3,6 +3,7 @@ package repositories
 import domain.models.{Payment, PaymentMethod, PaymentStatus}
 
 import java.time.LocalDate
+import java.util.UUID
 import scala.concurrent.Future
 import scala.util.Try
 
@@ -12,6 +13,7 @@ trait PaymentRepository {
   def getPaymentById(ref:String):Future[Option[Payment]]
   def getPaymentStatus(status:PaymentStatus): Future[Seq[Payment]]
   def getPaymentByMethod(method: PaymentMethod): Future[Seq[Payment]]
+  def getPaymentByShipmentId(shipmentId: UUID): Future[Option[Payment]]
 
   def getAllPayment:Future[Seq[Payment]]
   def updatePayment(payment: Payment):Future[Try[Int]]

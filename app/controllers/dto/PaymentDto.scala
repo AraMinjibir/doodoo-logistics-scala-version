@@ -1,5 +1,6 @@
 package controllers.dto
 
+import domain.errors.{DomainError, ValidationError}
 import domain.models.{Payment, PaymentMethod, PaymentStatus}
 import play.api.libs.json.{Format, Json, OFormat}
 
@@ -12,13 +13,13 @@ private[controllers] case class PaymentRequestDto(
                                                    amount:BigDecimal,
                                                    paymentMethod:PaymentMethod
                                                  ) {
-  def toPaymentDomain:Either[List[String],Payment] =
+  def toPaymentDomain:Either[DomainError, Payment] =
     Payment.generatePayment(
       customerId = this.customerId,
       shipmentId = this.shipmentId,
       amount = this.amount,
       paymentMethod = this.paymentMethod
-    )
+    ).left.map(errors => ValidationError(errors.mkString(", ")))
 }
 
 private [controllers] case class PaymentResponseDto(
@@ -34,14 +35,12 @@ private [controllers] case class PaymentResponseDto(
                                                    )
 
 object PaymentRequestDto {
+
+  implicit val paymentMethodFormat: Format[PaymentMethod] =
+    controllers.json.PaymentMethodJson.format
+
   implicit val format:OFormat[PaymentRequestDto] = Json.format[PaymentRequestDto]
 
-  def toPaymentDto(domain:Payment):PaymentRequestDto = PaymentRequestDto(
-    customerId = domain.customerId,
-    shipmentId = domain.shipmentId,
-    amount = domain.amount,
-    paymentMethod = domain.paymentMethod
-  )
 }
 
 object PaymentResponseDto {

@@ -24,11 +24,20 @@ class PaymentController @Inject()(
      errors =>  Future.successful(onValidationError(errors)),
 
       paymentDto => paymentDto.toPaymentDomain match {
-        case Left(err) => Future.successful(BadRequest(Json.toJson(err)))
+        case Left(err) =>
+          Future.successful(toResult(err))
         case Right(validPayment) =>
-          paymentService.initiatePayment(validPayment, callbackUrl).map { paymentUrl =>
-            Created(Json.obj("authorizationUrl" -> paymentUrl))
-          }.recover {
+          paymentService.initiatePayment(validPayment, callbackUrl).map {
+              _.fold(
+                toResult,
+                gatewayResponse =>
+                  Created(Json.obj(
+                    "authorizationUrl" -> gatewayResponse.authorizationUrl,
+                    "referenceNumber"  -> gatewayResponse.reference
+                  ))
+              )
+            }
+            .recover {
             case e => handleException(e)
           }
       }
@@ -64,7 +73,7 @@ class PaymentController @Inject()(
         handleException(ex)
     }
   }
-  def getPaymentStatus(status:PaymentStatus):Action[AnyContent] = Action.async{
+  def getPaymentByStatus(status:PaymentStatus):Action[AnyContent] = Action.async{
     paymentService.getPaymentStatus(status).map{ paymentByStatus =>
       val paymentDto = paymentByStatus.map(PaymentResponseDto.toPaymentResponseDto)
       Ok(Json.toJson(paymentDto))

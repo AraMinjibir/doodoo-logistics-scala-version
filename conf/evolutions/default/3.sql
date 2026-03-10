@@ -1,4 +1,4 @@
-        --Ups
+        -- !Ups
 
         CREATE TABLE payments(
         customer_id UUID NOT NULL,
@@ -10,7 +10,7 @@
         payment_method  TEXT NOT NULL,
         reference_number TEXT PRIMARY KEY,
         gateway_transaction_id TEXT,
-        failure_reason TEXT.
+        failure_reason TEXT,
 
         CONSTRAINT shipment_foreign_key
         FOREIGN KEY (shipment_id)
@@ -26,7 +26,7 @@
          CREATE INDEX idx_payments_payment_method
          ON payments(payment_method);
 
-         -- Downs
+         -- !Downs
 
          DROP INDEX IF EXISTS  idx_payments_status;
          DROP INDEX IF EXISTS  idx_payments_payment_method;

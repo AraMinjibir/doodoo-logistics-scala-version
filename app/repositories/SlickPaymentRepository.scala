@@ -9,6 +9,7 @@ import slick.jdbc.JdbcProfile
 import infrastructure.persistence.tables.PaymentTable._
 
 import java.time.{Instant, LocalDate, ZoneId}
+import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
@@ -84,4 +85,11 @@ class SlickPaymentRepository @Inject()(
     db.run(delete.asTry)
   }
 
+ override def getPaymentByShipmentId(shipmentId: UUID): Future[Option[Payment]] =
+    db.run(
+      PaymentTable.table
+        .filter(_.shipmentId === shipmentId)
+        .result
+        .headOption
+    ).map(_.map(mapper.fromRow))
 }

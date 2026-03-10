@@ -1,17 +1,19 @@
 package domain.services
 
+import domain.errors.DomainError
+import domain.gateways.PaymentGatewayResponse
 import domain.models.{Payment, PaymentMethod, PaymentStatus}
 
 import java.time.LocalDate
 import scala.concurrent.Future
-import scala.util.Try
+
 
 trait PaymentService {
 
   def initiatePayment(
                        payment: Payment,
                        callbackUrl: String
-                     ): Future[String]
+                     ): Future[Either[DomainError,PaymentGatewayResponse]]
 
   def handleWebhook(
                      payload: String,

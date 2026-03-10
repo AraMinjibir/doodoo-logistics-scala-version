@@ -1,10 +1,11 @@
 package domain.services.impl
 
 import com.google.inject.{Inject, Singleton}
-import domain.gateways.{PaymentGateway, PaymentWebhookEvent}
+import domain.errors.{DomainError, DuplicateError}
+import domain.gateways.{PaymentGateway, PaymentGatewayResponse, PaymentWebhookEvent}
 import domain.models.{Payment, PaymentMethod, PaymentStatus}
 import domain.services.PaymentService
-import repositories.PaymentRepository
+import repositories.{PaymentRepository, ShipmentRepository}
 
 import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
@@ -13,6 +14,7 @@ import scala.util.Success
 @Singleton
 class PaymentServiceImpl @Inject()(
                                     paymentRepository: PaymentRepository,
+                                    shipmentRepository:ShipmentRepository,
                                     gateway: PaymentGateway)
                                   (implicit ec: ExecutionContext)
                                   extends PaymentService {
@@ -20,29 +22,27 @@ class PaymentServiceImpl @Inject()(
   override def initiatePayment(
                                 payment: Payment,
                                 callbackUrl: String
-                              ): Future[String] = {
+                              ): Future[Either[DomainError, PaymentGatewayResponse]] = {
 
-    for {
+    // 1. Ensure shipment exists
+    shipmentRepository.getById(payment.shipmentId).flatMap {
+      case None =>
+        // Shipment does not exist → return Left
+        Future.successful(Left(DuplicateError(s"Shipment ${payment.shipmentId} not found")))
 
-      // 1 Prevent duplicate payment
-      existing <- paymentRepository.getPaymentById(payment.referenceNumber)
+      case Some(_) =>
+        // 2. Prevent duplicate payment
+        paymentRepository.getPaymentByShipmentId(payment.shipmentId).flatMap {
+          case Some(existing) =>
+            Future.successful(Left(DuplicateError(s"Payment already initiated: ${existing.referenceNumber}")))
 
-      _ <- existing match {
-        case Some(_) =>
-          Future.failed(
-            new IllegalStateException(
-              s"Payment already exists for ${payment.referenceNumber}"
-            )
-          )
-
-        case None =>
-          paymentRepository.makePayment(payment).map(_ => ())
-      }
-
-      // 2 Call payment gateway
-      gatewayResponse <- gateway.initiatePayment(payment, callbackUrl)
-
-    } yield gatewayResponse.authorizationUrl
+          case None =>
+            // 3. Call payment gateway and wrap in Right
+            gateway.initiatePayment(payment, callbackUrl).map { gatewayResp =>
+              Right(gatewayResp)
+            }
+        }
+    }
   }
   override def handleWebhook(
                               payload: String,
