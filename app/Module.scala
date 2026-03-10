@@ -1,5 +1,5 @@
 import com.google.inject.AbstractModule
-import domain.gateways.{PaymentGateway, PaystackGateway}
+import domain.gateways.{MockPaymentGateway, PaymentGateway}
 import domain.services.{PaymentService, ShipmentService, SupportCenterService}
 import domain.services.impl.{PaymentServiceImpl, ShipmentServiceImpl, SupportCenterServiceImpl}
 import mappers.ShipmentRowMapper
@@ -22,7 +22,7 @@ class Module extends AbstractModule {
     //Bind Mapper
     bind(classOf[ShipmentRowMapper]).asEagerSingleton()
 
-    bind(classOf[PaymentGateway]).to(classOf[PaystackGateway])
+    bind(classOf[PaymentGateway]).to(classOf[MockPaymentGateway])
 
 
   }
