@@ -84,16 +84,10 @@ class ShipmentServiceImpl @Inject()(
   override def listShipments(offset: Int, limit: Int): Future[Seq[Shipment]] = {
     repo.listAll(offset: Int, limit: Int)
   }
-  override def deleteShipment(id: UUID): Future[Either[String, Unit]] = {
-    repo.delete(id).map {
-      case Success(0) =>
-        Left("Shipment not found")
-
-      case Success(_) =>
-        Right(())
-
-      case Failure(ex) =>
-        Left(ex.getMessage)
+  override def deleteShipment(id: UUID): Future[Either[DomainError, Unit]] = {
+    repo.delete(id).map{
+      case Success(_) => Right(())
+      case Success(0) => Left(ShipmentNotFoundById(id))
     }
   }
 

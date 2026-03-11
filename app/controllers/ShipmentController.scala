@@ -7,6 +7,7 @@ import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc._
 import domain.models.ShipmentStatus
 import controllers.json.ShipmentStatusJson._
+import domain.errors.ShipmentNotFoundById
 import domain.services.ShipmentService
 import play.api.Logger
 
@@ -144,15 +145,8 @@ class ShipmentController @Inject()(shipmentService: ShipmentService,
 
   def deleteShipment(id: UUID): Action[AnyContent] = Action.async { implicit request =>
     shipmentService.deleteShipment(id).map {
-      case Left(error) if error.contains("not found") =>
-        NotFound(Json.obj("message" -> error))
-
-      case Left(error) =>
-        BadRequest(Json.obj("message" -> error))
-
-      case Right(_) =>
-        // 204 No Content
-        NoContent
+      case Right(_) => NoContent
+      case Left(err) => BadRequest(Json.obj("error" -> err.message))
     }.recover {
       case e => handleException(e)
     }

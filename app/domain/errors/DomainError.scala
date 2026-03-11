@@ -1,6 +1,6 @@
 package domain.errors
 
-import domain.models.{ComplaintStatus, ShipmentStatus}
+import domain.models.{ComplaintStatus, ShipmentStatus, UserStatus}
 
 import java.util.UUID
 
@@ -129,5 +129,30 @@ case class DuplicateError(cause: String) extends DomainError {
 }
 
 
+//User management
+
+final case class UserAlreadyExists(email: String) extends DomainError {
+  val message = s"User with the given email: $email already exist"
+}
+final case class UserStatusIsNotActive(status: UserStatus) extends DomainError {
+  val message = s"User must be Active to login: $status"
+}
+final case class UserNotFound(email: String) extends DomainError {
+  val message = s"User with the given email: $email not found"
+}
+final case class UserNotFoundWithId(userId: UUID) extends DomainError {
+  val message = s"User with the given id: $userId is not found"
+}
+case class UpdateUserError(cause: String) extends DomainError {
+  val message = s"Unable to update the user: $cause"
+}
+
+case class UserStatusUpdateError(cause: String) extends DomainError {
+  val message = s"Unable to update the user status: $cause"
+}
+
+case class InvalidCredentials() extends DomainError {
+  override val message: String = "Invalid email or password"
+}
 
 

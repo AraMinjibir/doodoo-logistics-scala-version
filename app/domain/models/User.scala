@@ -1,5 +1,7 @@
 package domain.models
 
+import org.mindrot.jbcrypt.BCrypt
+
 import java.time.Instant
 import java.util.UUID
 
@@ -20,33 +22,45 @@ import java.util.UUID
 object User {
 
   def createUser(
-              name: String,
-              email: String,
-              phone: String,
-              role: UserRole
-            ): Either[List[String], User] = {
-     val err: List[String] = List(
-      Option.when(name.trim.isEmpty)(s"Name must be provided: $name"),
-      Option.when(email.trim.isEmpty)(s"Email address must be provided: $email"),
-      Option.when(phone.trim.isEmpty)(s"Phone number is required"),
-       Option.when(!UserRole.values.contains(role))(
-         s"Invalid user role: $role"
-       )
+                  name: String,
+                  email: String,
+                  password: String,
+                  phone: String,
+                  role: UserRole
+                ): Either[List[String], User] = {
+
+    val errors = List(
+      Option.when(name.trim.isEmpty)("Name must be provided"),
+      Option.when(email.trim.isEmpty)("Email must be provided"),
+      Option.when(phone.trim.isEmpty)("Phone number is required"),
+      Option.when(password.trim.isEmpty)("Password must be provided"),
+      Option.when(password.length < 8)("Password must be at least 8 characters")
     ).flatten
+
     Either.cond(
-      err.isEmpty,
-      User(id = UUID.randomUUID(),
+      errors.isEmpty,
+      User(
+        id = UUID.randomUUID(),
         name = name,
         email = email,
         phone = phone,
-        hashPassword = "",
+        hashPassword = hashPasswordValue(password),
         role = role,
         status = UserStatus.Active,
         createdAt = Instant.now(),
         updatedAt = None
-      ), err
+      ),
+      errors
     )
   }
+
+  def hashPasswordValue(plainPassword: String): String =
+    BCrypt.hashpw(plainPassword, BCrypt.gensalt())
+
+  def checkPassword(plainPassword: String, hashPassword: String): Boolean =
+    BCrypt.checkpw(plainPassword, hashPassword)
+
+
 }
 
 

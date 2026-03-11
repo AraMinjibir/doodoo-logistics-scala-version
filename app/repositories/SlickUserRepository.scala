@@ -45,7 +45,7 @@ class SlickUserRepository @Inject()(
   override def listAllUsers: Future[Seq[User]] =
     db.run(q.result).map(_.map(mapper.fromRow))
 
-  override def updateUserDetails(user: User): Future[Try[Int]] = {
+  override def updateUser(user: User): Future[Try[Int]] = {
     val updatedRow = mapper.fromDomain(user)
     val updatedField = q.filter(_.id === user.id).update(updatedRow)
 

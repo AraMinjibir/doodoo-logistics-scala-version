@@ -17,7 +17,7 @@ trait UserRepository {
   def findUserByStatus(status: UserStatus): Future[Seq[User]]
   def listAllUsers: Future[Seq[User]]
 
-  def updateUserDetails(user: User): Future[Try[Int]]
+  def updateUser(user: User): Future[Try[Int]]
   def deleteUser(id: UUID): Future[Try[Int]]
 
 
