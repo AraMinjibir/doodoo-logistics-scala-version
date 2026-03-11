@@ -1,5 +1,18 @@
 package infrastructure.persistence.models
 
-class UserRow {
+import domain.models.{UserRole, UserStatus}
 
-}
+import java.time.Instant
+import java.util.UUID
+
+case class UserRow(
+                    id: UUID,
+                    name: String,
+                    email: String,
+                    hashPassword: String,
+                    phone: String,
+                    role: UserRole,
+                    status: UserStatus,
+                    createdAt: Instant,
+                    updatedAt: Instant
+                  )
