@@ -13,7 +13,7 @@ import java.util.UUID
                    role: UserRole,
                    status: UserStatus,
                    createdAt: Instant,
-                   updatedAt: Instant
+                   updatedAt: Option[Instant]
                  )
 
 
@@ -43,7 +43,7 @@ object User {
         role = role,
         status = UserStatus.Active,
         createdAt = Instant.now(),
-        updatedAt = Instant
+        updatedAt = None
       ), err
     )
   }

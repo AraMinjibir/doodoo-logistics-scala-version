@@ -14,5 +14,5 @@ case class UserRow(
                     role: UserRole,
                     status: UserStatus,
                     createdAt: Instant,
-                    updatedAt: Instant
+                    updatedAt: Option[Instant]
                   )

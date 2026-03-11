@@ -19,7 +19,7 @@ class UserTable(tag:Tag) extends Table[UserRow](tag, "users"){
   def role = column[UserRole]("role")
   def  status = column[UserStatus]("status")
   def createdAt = column[Instant]("created_at")
-  def updatedAt = column[Instant]("updated_at")
+  def updatedAt = column[Option[Instant]]("updated_at")
 
   def * :ProvenShape[UserRow] = (
     id,name,email,hashPassword,phoneNumber,role,status,createdAt,updatedAt
