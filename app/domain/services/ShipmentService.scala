@@ -23,7 +23,7 @@ trait ShipmentService {
   def updateShipment(shipmentId:UUID, shipment: Shipment): Future[Either[DomainError, Shipment]]
 
   def listShipments(offset: Int, limit: Int): Future[Seq[Shipment]]
-  def deleteShipment(id: UUID): Future[Either[String, Unit]]
+  def deleteShipment(id: UUID): Future[Either[DomainError, Unit]]
   def uploadProofOfDelivery(trackingNumber: String, proof: ProofOfDelivery): Future[Either[List[DomainError], Shipment]]
 
 }
