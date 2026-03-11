@@ -59,6 +59,7 @@ class SlickUserRepositoryIT
   val newUser = User.createUser(
     name = "DooDoo User",
     email = "DooDooUser@gmail.com",
+    password = "doodoooaauiiq1234",
     phone = "07022223456",
     role = Admin
   ).fold(
@@ -68,6 +69,7 @@ class SlickUserRepositoryIT
   val newUser2 = User.createUser(
     name = "DooDoo User2",
     email = "DooDooUser2@gmail.com",
+    password = "doodoouser2112eiiq1234",
     phone = "07022223456",
     role = Recipient
   ).fold(
@@ -103,7 +105,7 @@ class SlickUserRepositoryIT
         updatedAt = newUser.updatedAt
       )
 
-      val result = Await.result(repo.updateUserDetails(newStatus), 5.second)
+      val result = Await.result(repo.updateUser(newStatus), 5.second)
       result.isSuccess shouldBe true
 
       val updatedRow = Await.result(dbConfig.db.run(UserTable.table.filter(_.id === newUser.id).result.head), 5.second)
