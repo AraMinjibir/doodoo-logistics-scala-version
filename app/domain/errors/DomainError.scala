@@ -155,4 +155,10 @@ case class InvalidCredentials() extends DomainError {
   override val message: String = "Invalid email or password"
 }
 
+case class UserDeletionError(cause: String) extends DomainError {
+  val message = s"Unable to delete the user status: $cause"
+}
+
+
+
 

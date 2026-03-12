@@ -2,7 +2,7 @@ package domain.services.impl
 
 import com.google.inject.{Inject, Singleton}
 import controllers.helpers.ResultMapper
-import domain.errors.{DomainError, InvalidCredentials, UpdateUserError, UserAlreadyExists, UserNotFound, UserNotFoundWithId, UserStatusIsNotActive, UserStatusUpdateError, ValidationError}
+import domain.errors.{DomainError, InvalidCredentials, UpdateUserError, UserAlreadyExists, UserDeletionError, UserNotFound, UserNotFoundWithId, UserStatusIsNotActive, UserStatusUpdateError, ValidationError}
 import domain.models.{User, UserRole, UserStatus}
 import domain.services.{JwtService, UserService}
 import repositories.UserRepository
@@ -108,10 +108,11 @@ class UserServiceImpl @Inject()(
     }
   }
  override def deleteUser(userId: UUID): Future[Either[DomainError,Unit]] = {
-    userRepository.deleteUser(userId).map{
-      case Success(_) => Right(())
-      case Success(0) => Left(UserNotFoundWithId(userId))
-    }
+   userRepository.deleteUser(userId).map {
+     case Success(1) => Right(())
+     case Success(0) => Left(UserNotFoundWithId(userId))
+     case Failure(ex) => Left(UserDeletionError(ex.getMessage))
+   }
   }
 
 
