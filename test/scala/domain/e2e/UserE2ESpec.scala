@@ -103,7 +103,6 @@ class UserE2ESpec extends PlaySpec
           10.seconds
         )
 
-
         getUserResponse.status mustBe 200
 
         // 4️ UPDATE USER
@@ -126,7 +125,6 @@ class UserE2ESpec extends PlaySpec
           10.seconds
         )
 
-        println(updateResponse.body)
         updateResponse.status mustBe 200
 
         // 5️ DELETE USER
