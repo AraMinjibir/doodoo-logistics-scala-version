@@ -62,10 +62,10 @@ POST    /users/login                   controllers.UserController.login
 
 GET     /users                         controllers.UserController.listAllUsers
 GET     /users/id/:id                   controllers.UserController.getUserById(id:java.util.UUID)
-GET     /users/role/:role               controllers.UserController.getUserByRole(role: models.UserRole)
-GET     /users/status/:status           controllers.UserController.getUserByStatus(status: models.UserStatus)
+GET     /users/role/:role               controllers.UserController.getUserByRole(role: domain.models.UserRole)
+GET     /users/status/:status           controllers.UserController.getUserByStatus(status: domain.models.UserStatus)
 GET     /users/username/:username       controllers.UserController.getUserByUsername(username: String)
 
 PUT     /users/update/:id               controllers.UserController.updateUser(id:java.util.UUID)
-PATCH   /users/:id/status               controllers.UserController.updateStatus(id:java.util.UUID, status: models.UserStatus)
+PATCH   /users/:id/status/:status              controllers.UserController.updateStatus(id:java.util.UUID, status: domain.models.UserStatus)
 DELETE  /users/:id                      controllers.UserController.deleteUser(id:java.util.UUID)
