@@ -2,7 +2,7 @@ package controllers.dto
 
 import domain.errors.{DomainError, ValidationError}
 import domain.models.{User, UserRole, UserStatus}
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{Format, Json, OFormat}
 
 import java.time.Instant
 import java.util.UUID
@@ -39,6 +39,11 @@ private[controllers] case class UserResponseDto (
 
                                           )
 object UserResponseDto {
+  implicit val userStatusFormat: Format[UserStatus] =
+    controllers.json.UserStatusJson.format
+
+  implicit val userRoleFormat: Format[UserRole] =
+    controllers.json.UserRoleJson.format
   implicit val format:OFormat[UserResponseDto] = Json.format[UserResponseDto]
 
   def toUserResponseDto(domain: User, token:String): UserResponseDto = {
@@ -57,7 +62,27 @@ object UserResponseDto {
 }
 
 object SignUpDto {
+  implicit val userStatusFormat: Format[UserStatus] =
+    controllers.json.UserStatusJson.format
+
+  implicit val userRoleFormat: Format[UserRole] =
+    controllers.json.UserRoleJson.format
+
   implicit val format:OFormat[SignUpDto] = Json.format[SignUpDto]
+
+  def toUserDomain(dto:SignUpDto):User = {
+
+    User.createUser(
+      name = dto.name,
+      email = dto.email,
+      password = dto.password,
+      phone = dto.phone,
+      role = dto.role
+    ).fold(
+      errors => throw new RuntimeException(errors.mkString(",")),
+      identity
+    )
+  }
 }
 object LoginDto {
   implicit val format: OFormat[LoginDto] = Json.format[LoginDto]

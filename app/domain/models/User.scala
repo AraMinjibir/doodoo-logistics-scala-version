@@ -44,7 +44,7 @@ object User {
         name = name,
         email = email,
         phone = phone,
-        hashPassword = hashPasswordValue(password),
+        hashPassword = password,
         role = role,
         status = UserStatus.Active,
         createdAt = Instant.now(),

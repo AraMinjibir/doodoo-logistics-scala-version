@@ -19,6 +19,7 @@ class UserServiceImpl @Inject()(
                             )(implicit ex: ExecutionContext) extends UserService with ResultMapper {
 
  override def registerUser(user: User): Future[Either[DomainError, User]] = {
+   val hashedPassword = User.hashPasswordValue(user.hashPassword)
     userRepository.findUserByEmail(user.email).flatMap {
 
       case Some(_) =>
@@ -28,7 +29,7 @@ class UserServiceImpl @Inject()(
         User.createUser(
           name = user.name,
           email = user.email,
-          password = user.hashPassword,
+          password = hashedPassword,
           phone = user.phone,
           role = user.role
         ) match {

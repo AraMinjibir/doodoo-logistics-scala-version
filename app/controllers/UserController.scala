@@ -3,10 +3,10 @@ package controllers
 import com.google.inject.{Inject, Singleton}
 import controllers.helpers.ResultMapper
 import controllers.dto.{LoginDto, SignUpDto, UserResponseDto}
-import domain.errors.{DomainError, InvalidCredentials}
+import domain.errors.UserAlreadyExists
 import domain.models.{UserRole, UserStatus}
 import domain.services.UserService
-import play.api.libs.json.{JsError, JsValue, Json}
+import play.api.libs.json.{ JsValue, Json}
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 
 import java.util.UUID
@@ -28,18 +28,29 @@ class UserController @Inject()(
         dto.toSignUpDomain match {
           case Left(validationError) =>
             Future.successful(toResult(validationError))
-          case Right(user) =>
+          case Right(_) =>
+
+            val user = SignUpDto.toUserDomain(dto)
 
             userService.registerUser(user).flatMap {
-              case Left(err) =>
-                Future.successful(toResult(err))
+              case Left(UserAlreadyExists(email)) =>
+                Future.successful(
+                  Conflict(Json.obj("message" -> s"User with email $email already exists"))
+                )
+
               case Right(createdUser) =>
-//               Generate token
-                userService.login(user.email, dto.password).map {
-                  case Left(_) => NotFound("User not found")
+                userService.login(createdUser.email, dto.password).map {
+                  case Left(_) =>
+                    InternalServerError("User created but login failed")
+
                   case Right(token) =>
-                    Created(Json.toJson(UserResponseDto.toUserResponseDto(createdUser, token)))
+                    Created(Json.toJson(
+                      UserResponseDto.toUserResponseDto(createdUser, token)
+                    ))
                 }
+            }.recover{
+              case ex =>
+                handleException(ex)
             }
         }
     )
@@ -58,6 +69,9 @@ class UserController @Inject()(
                 Ok(Json.toJson(UserResponseDto.toUserResponseDto(user, token)))
               case None =>
                 NotFound(Json.obj("error" -> s"User not found after login"))
+            }.recover{
+              case ex =>
+                handleException(ex)
             }
         }
     )
@@ -66,6 +80,9 @@ class UserController @Inject()(
   def listAllUsers: Action[AnyContent] = Action.async {
     userService.listAllUsers.map { users =>
       Ok(Json.toJson(users.map(user => UserResponseDto.toUserResponseDto(user, ""))))
+    }.recover{
+      case ex =>
+        handleException(ex)
     }
   }
 
@@ -73,21 +90,30 @@ class UserController @Inject()(
     userService.findUserById(userId).map {
       case Some(user) => Ok(Json.toJson(UserResponseDto.toUserResponseDto(user, "")))
       case None       => NotFound(Json.obj("error" -> s"User not found with ID $userId"))
+    }.recover{
+      case ex =>
+        handleException(ex)
     }
   }
   def getUserByUsername(username: String): Action[AnyContent] = Action.async{
     userService.findUserByUsername(username).map{
       case Some(user) => Ok(Json.toJson(UserResponseDto.toUserResponseDto(user, "")))
       case None => NotFound(Json.obj("error" -> s"No user found with this username: $username"))
+    }.recover{
+      case ex =>
+        handleException(ex)
     }
   }
   def getUserByRole(role: UserRole): Action[AnyContent] = Action.async{
     userService.findUserByRole(role).map{users =>
       Ok(Json.toJson(users.map(user => UserResponseDto.toUserResponseDto(user, ""))))
 
+    }.recover{
+      case ex =>
+        handleException(ex)
     }
   }
-  def getUserByStatus(status:UserStatus): Any = Action.async {
+  def getUserByStatus(status:UserStatus): Action[AnyContent] = Action.async {
     userService.findUserByStatus(status).map { users =>
       Ok(Json.toJson(users.map(user => UserResponseDto.toUserResponseDto(user, ""))))
     }
@@ -106,7 +132,11 @@ class UserController @Inject()(
                 Ok(Json.toJson(UserResponseDto.toUserResponseDto(updatedUser, "")))
             }
         }
-    )
+
+    ).recover{
+      case ex =>
+        handleException(ex)
+    }
   }
 
   def updateStatus(userId:UUID, status: UserStatus): Action[AnyContent] = Action.async {
@@ -114,6 +144,9 @@ class UserController @Inject()(
       case Left(err)        => toResult(err)
       case Right(updatedUser) =>
         Ok(Json.toJson(UserResponseDto.toUserResponseDto(updatedUser, "")))
+    }.recover{
+      case ex =>
+        handleException(ex)
     }
   }
 
@@ -122,6 +155,9 @@ class UserController @Inject()(
     userService.deleteUser(userId).map {
       case Left(err) => toResult(err)
       case Right(_)  => NoContent
+    }.recover{
+      case ex =>
+        handleException(ex)
     }
   }
 
