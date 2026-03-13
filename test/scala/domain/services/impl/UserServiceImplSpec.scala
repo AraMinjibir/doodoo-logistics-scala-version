@@ -23,14 +23,15 @@ class UserServiceImplSpec extends AnyWordSpec
   with MockitoSugar
   with BeforeAndAfterEach{
 
-  val mockRepo = mock[UserRepository]
-  val jwt = mock[JwtService]
+  val mockRepo: UserRepository = mock[UserRepository]
+  val jwt: JwtService = mock[JwtService]
   val service = new UserServiceImpl(mockRepo, jwt)
+  val hashedPassword: String = User.hashPasswordValue("doodoooaauiiq1234")
 
-  val user = User.createUser(
+  val user: User = User.createUser(
     name = "DooDoo User",
     email = "DooDooUser@gmail.com",
-    password = "doodoooaauiiq1234",
+    password = hashedPassword,
     phone = "07022223456",
     role = Admin
   ).fold(
