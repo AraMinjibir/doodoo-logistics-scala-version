@@ -147,6 +147,7 @@ case class UpdateUserError(cause: String) extends DomainError {
   val message = s"Unable to update the user: $cause"
 }
 
+
 case class UserStatusUpdateError(cause: String) extends DomainError {
   val message = s"Unable to update the user status: $cause"
 }
@@ -157,6 +158,12 @@ case class InvalidCredentials() extends DomainError {
 
 case class UserDeletionError(cause: String) extends DomainError {
   val message = s"Unable to delete the user status: $cause"
+}
+case class UsertCreationError(cause: String) extends DomainError {
+  val message = s"Unable to create the user: $cause"
+}
+case class invalidLoginDetails(cause: String) extends DomainError {
+  val message = s"Unable to log the user: $cause"
 }
 
 

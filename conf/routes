@@ -55,3 +55,17 @@ DELETE      /payments/:ref                controllers.PaymentController.deletePa
 GET   /payments/revenue/daily     controllers.PaymentController.getDailyRevenue(date: String)
 GET   /payments/revenue/weekly    controllers.PaymentController.getWeeklyRevenue(date: String)
 GET   /payments/revenue/monthly   controllers.PaymentController.getMonthlyRevenue(year: Int, month: Int)
+
+# User Management
+POST    /users/signUp                  controllers.UserController.signUp
+POST    /users/login                   controllers.UserController.login
+
+GET     /users                         controllers.UserController.listAllUsers
+GET     /users/id/:id                   controllers.UserController.getUserById(id:java.util.UUID)
+GET     /users/role/:role               controllers.UserController.getUserByRole(role: models.UserRole)
+GET     /users/status/:status           controllers.UserController.getUserByStatus(status: models.UserStatus)
+GET     /users/username/:username       controllers.UserController.getUserByUsername(username: String)
+
+PUT     /users/update/:id               controllers.UserController.updateUser(id:java.util.UUID)
+PATCH   /users/:id/status               controllers.UserController.updateStatus(id:java.util.UUID, status: models.UserStatus)
+DELETE  /users/:id                      controllers.UserController.deleteUser(id:java.util.UUID)

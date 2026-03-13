@@ -42,7 +42,15 @@ trait ResultMapper {
           "from"    -> from.toString,
           "to"      -> to.toString
         )
-      )  }
+      )
+    case UsertCreationError(msg) => BadRequest(Json.obj("error" -> msg))
+    case invalidLoginDetails(msg) => BadRequest(Json.obj("error" -> msg))
+    case UpdateUserError(msg) => BadRequest(Json.obj("error" -> msg))
+    case UserStatusUpdateError(msg) => BadRequest(Json.obj("error" -> msg))
+    case UserDeletionError(msg) => BadRequest(Json.obj("error" -> msg))
+
+  }
+
 
   /**
    * Standardizes JSON validation error responses
