@@ -82,11 +82,43 @@ Leveraged database-level aggregation (SUM) via Slick for performance efficiency
 Ensured monetary correctness using BigDecimal
 Centralized revenue logic using a reusable revenueBetween abstraction.
 
-Administrator
-• System Oversight: Full read/write access to all entities.
+Administrative Functionality
 
-• Operational Recovery: Authorized to perform manual state corrections and audit the entire 
- system's health.
+The system provides an administrative interface that allows platform administrators to manage users and monitor shipment 
+activities across the logistics network. These capabilities ensure operational oversight, user accountability
+and timely response to delivery issues.
+
+1. User Account Management
+
+Administrators can manage accounts for all platform participants, including Senders, Recipients
+and Service Providers.
+
+Key capabilities include:
+
+Create User Accounts: Register new Senders, Recipients, or Service Providers on the platform.
+
+Edit User Profiles: Update user information such as name, contact details, or assigned role.
+
+Manage Roles and Permissions: Assign appropriate roles to users based on their responsibilities within the system.
+
+Deactivate or Remove Accounts: Disable or delete accounts that are no longer active or violate platform policies.
+
+This functionality ensures that administrators maintain control over platform access while supporting smooth onboarding
+and management of logistics participants.
+
+2. Shipment Monitoring
+
+Administrators can monitor the status of all shipments processed through the platform in real time.
+
+Key capabilities include:
+
+Track Shipment Status: View the current state of each shipment, including stages such as created, in transit, delivered, 
+or cancelled.
+
+Access Shipment Details: Inspect shipment information, including sender, recipient, assigned service provider
+and delivery timeline.
+
+Operational Oversight: Maintain visibility over the entire delivery process to ensure service reliability.
 
 3. Architecture & Design Patterns
 The system follows Domain-Driven Design (DDD) principles to isolate business logic from infrastructure.

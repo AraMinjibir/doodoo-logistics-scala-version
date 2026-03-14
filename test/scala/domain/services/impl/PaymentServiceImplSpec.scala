@@ -10,7 +10,7 @@ import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AsyncWordSpec
 import org.scalatestplus.mockito.MockitoSugar
-import repositories.PaymentRepository
+import repositories.{PaymentRepository, ShipmentRepository}
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -24,10 +24,13 @@ class PaymentServiceImplSpec extends AsyncWordSpec
   with PaymentTestHelper{
 
   val paymentRepository = mock[PaymentRepository]
+  val shipmentRepository = mock[ShipmentRepository]
   val gateway = mock[PaymentGateway]
 
   val service =
-    new PaymentServiceImpl(paymentRepository, gateway)
+    new PaymentServiceImpl(paymentRepository: PaymentRepository,
+      shipmentRepository:ShipmentRepository,
+      gateway: PaymentGateway)
 
   val payment = samplePayment
 
