@@ -1,6 +1,7 @@
 package scala.domain.helpers
 
-import domain.models.{Payment, PaymentMethod, PaymentStatus}
+import domain.models.UserRole.Admin
+import domain.models.{Payment, PaymentMethod, PaymentStatus, User}
 
 import java.time.Instant
 import java.util.UUID
@@ -40,7 +41,7 @@ trait PaymentTestHelper {
   }
 
   def newPayment(
-                  customerId:UUID = UUID.fromString("11111111-1111-1111-1111-111111111111"),
+                  customerId:UUID,
                   shipmentId:UUID,amount:BigDecimal = 10000,
                   paymentMethod:PaymentMethod = PaymentMethod.Card
                 ):Payment = {
@@ -66,6 +67,15 @@ trait PaymentTestHelper {
       case Left(errors)   => throw new RuntimeException(errors.mkString(", "))
     }
 
-
+  val newUser = User.createUser(
+    name = "DooDoo User",
+    email = "DooDooUser@gmail.com",
+    password = "doodoooaauiiq1234",
+    phone = "07022223456",
+    role = Admin
+  ).fold(
+    errors => throw new RuntimeException(errors.mkString(",")),
+    identity
+  )
 
 }

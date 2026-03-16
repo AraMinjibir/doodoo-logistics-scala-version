@@ -1,8 +1,9 @@
 package scala.domain.repository
 
-import domain.models.{Comment, ComplaintStatus}
-import repositories.{ShipmentRepository, SupportCenterRepository}
-import infrastructure.persistence.tables.{ShipmentsTable, SupportCenterTable}
+import domain.models.UserRole.Admin
+import domain.models.{Comment, ComplaintStatus, User}
+import repositories.{ShipmentRepository, SupportCenterRepository, UserRepository}
+import infrastructure.persistence.tables.{ShipmentsTable, SupportCenterTable, UserTable}
 
 import scala.util.Success
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, stats}
@@ -38,6 +39,7 @@ import scala.domain.helpers.{ShipmentTestHelpers, SupportCenterTestHelper}
 
    lazy val repo     = app.injector.instanceOf[SupportCenterRepository]
    lazy val shipmentRepo     = app.injector.instanceOf[ShipmentRepository]
+   lazy  val userRepo =  app.injector.instanceOf[UserRepository]
    lazy val dbConfig = app.injector.instanceOf[DatabaseConfigProvider].get[JdbcProfile]
    import dbConfig.profile.api._
 
@@ -45,7 +47,9 @@ import scala.domain.helpers.{ShipmentTestHelpers, SupportCenterTestHelper}
      val setupAction = DBIO.seq(
        SupportCenterTable.table.schema.dropIfExists,
        ShipmentsTable.table.schema.dropIfExists,
+       UserTable.table.schema.dropIfExists,
 
+       UserTable.table.schema.create,
        ShipmentsTable.table.schema.create,
        SupportCenterTable.table.schema.create
      )
@@ -57,16 +61,31 @@ import scala.domain.helpers.{ShipmentTestHelpers, SupportCenterTestHelper}
        dbConfig.db.run(
          DBIO.seq(
          SupportCenterTable.table.delete,
-         ShipmentsTable.table.delete
+         ShipmentsTable.table.delete,
+           UserTable.table.delete
        )), 5.seconds)
    }
 
    val shipment = createTestShipment()
 
-   val complaint = newComplaint(shipmentId = shipment.id)
+   val newUser = User.createUser(
+     name = "DooDoo User",
+     email = "DooDooUser@gmail.com",
+     password = "doodoooaauiiq1234",
+     phone = "07022223456",
+     role = Admin
+   ).fold(
+     errors => throw new RuntimeException(errors.mkString(",")),
+     identity
+   )
+
+   val complaint = newComplaint(shipmentId = shipment.id, userId = newUser.id)
 
     "SlickSupportCenterRepository" should {
       "Persist a complaint row into the database" in {
+
+        val user = Await.result(userRepo.createUser(newUser), 5.second)
+        user shouldBe Success(1)
 
         val shipmentResult = Await.result(shipmentRepo.create(shipment), 5.second)
         shipmentResult shouldBe Success(1)
@@ -82,6 +101,9 @@ import scala.domain.helpers.{ShipmentTestHelpers, SupportCenterTestHelper}
 
       }
       "Successfully update complaint status to In progress" in {
+        val user = Await.result(userRepo.createUser(newUser), 5.second)
+        user shouldBe Success(1)
+
         val shipment = createTestShipment()
         Await.result(shipmentRepo.create(shipment), 5.seconds)
 
@@ -107,6 +129,10 @@ import scala.domain.helpers.{ShipmentTestHelpers, SupportCenterTestHelper}
         persisted.status shouldBe ComplaintStatus.InProgress
       }
       "Successfully update complaint status to Resolved" in {
+
+        val user = Await.result(userRepo.createUser(newUser), 5.second)
+        user shouldBe Success(1)
+
         val shipment = createTestShipment()
         Await.result(shipmentRepo.create(shipment), 5.seconds)
 
@@ -137,6 +163,9 @@ import scala.domain.helpers.{ShipmentTestHelpers, SupportCenterTestHelper}
       }
       "Return a complaint for a valid id" in {
 
+        val user = Await.result(userRepo.createUser(newUser), 5.second)
+        user shouldBe Success(1)
+
         Await.result(shipmentRepo.create(shipment),5.second)
         Await.result(repo.createComplaint(complaint), 5.second)
 
@@ -146,10 +175,13 @@ import scala.domain.helpers.{ShipmentTestHelpers, SupportCenterTestHelper}
       }
       "should retrieve complaints by status" in {
 
+        val user = Await.result(userRepo.createUser(newUser), 5.second)
+        user shouldBe Success(1)
+
         val shipment = createTestShipment()
         Await.result(shipmentRepo.create(shipment), 5.seconds)
 
-        val complaint = newComplaint(shipmentId = shipment.id)
+        val complaint = newComplaint(shipmentId = shipment.id, userId = newUser.id)
         Await.result(repo.createComplaint(complaint), 5.seconds)
 
         val updated = complaint.copy(status = ComplaintStatus.InProgress)
@@ -173,11 +205,14 @@ import scala.domain.helpers.{ShipmentTestHelpers, SupportCenterTestHelper}
       }
       "should return all inserted complaints" in {
 
+        val user = Await.result(userRepo.createUser(newUser), 5.second)
+        user shouldBe Success(1)
+
         val shipment = createTestShipment()
         Await.result(shipmentRepo.create(shipment), 5.seconds)
 
-        val complaint1 = newComplaint(shipmentId = shipment.id)
-        val complaint2 = newComplaint(shipmentId = shipment.id)
+        val complaint1 = newComplaint(shipmentId = shipment.id, userId = newUser.id)
+        val complaint2 = newComplaint(shipmentId = shipment.id, userId = newUser.id)
 
         Await.result(repo.createComplaint(complaint1), 5.seconds)
         Await.result(repo.createComplaint(complaint2), 5.seconds)
@@ -190,10 +225,13 @@ import scala.domain.helpers.{ShipmentTestHelpers, SupportCenterTestHelper}
       }
       "should successfully add a comment" in {
 
+        val user = Await.result(userRepo.createUser(newUser), 5.second)
+        user shouldBe Success(1)
+
         val shipment = createTestShipment()
         Await.result(shipmentRepo.create(shipment), 5.seconds)
 
-        val complaint = newComplaint(shipmentId = shipment.id)
+        val complaint = newComplaint(shipmentId = shipment.id, userId = newUser.id)
         Await.result(repo.createComplaint(complaint), 5.seconds)
 
         val comment = Comment(

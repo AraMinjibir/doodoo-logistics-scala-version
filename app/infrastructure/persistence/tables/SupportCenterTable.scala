@@ -17,7 +17,7 @@ class SupportCenterTable(tag: Tag) extends Table[SupportCenterRow](tag, "support
   def userId = column[UUID]("user_id")
   def shipmentId = column[UUID]("shipment_id")
   def subject = column[String]("subject")
-  def descrription = column[String]("description")
+  def description = column[String]("description")
   def status = column[ComplaintStatus]("status")
   def createdAt = column[Instant]("created_at")
   def resolvedAt = column[Option[Instant]]("resolved_at")
@@ -25,13 +25,14 @@ class SupportCenterTable(tag: Tag) extends Table[SupportCenterRow](tag, "support
   def comment = column[Seq[Comment]]("comment")
 
   def supportFk = foreignKey("shipment_foreign_key", shipmentId, ShipmentsTable.table)(_.id, onDelete = Cascade)
+  def supportFk2 = foreignKey("user_foreign_key", userId, UserTable.table)(_.id, onDelete = Cascade)
 
   def * :ProvenShape[SupportCenterRow] = (
     id,
     userId,
     shipmentId,
     subject,
-    descrription,
+    description,
     status,
     createdAt,
     resolvedAt,

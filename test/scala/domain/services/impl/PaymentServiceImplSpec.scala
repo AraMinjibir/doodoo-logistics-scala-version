@@ -14,14 +14,16 @@ import repositories.{PaymentRepository, ShipmentRepository}
 
 import java.time.LocalDate
 import scala.concurrent.Future
-import scala.domain.helpers.PaymentTestHelper
+import scala.concurrent.duration.DurationInt
+import scala.domain.helpers.{PaymentTestHelper, ShipmentTestHelpers}
 import scala.util.Success
 
 class PaymentServiceImplSpec extends AsyncWordSpec
   with Matchers
   with MockitoSugar
   with ScalaFutures
-  with PaymentTestHelper{
+  with PaymentTestHelper
+  with ShipmentTestHelpers{
 
   val paymentRepository = mock[PaymentRepository]
   val shipmentRepository = mock[ShipmentRepository]
@@ -33,19 +35,20 @@ class PaymentServiceImplSpec extends AsyncWordSpec
       gateway: PaymentGateway)
 
   val payment = samplePayment
+  val shipment = createTestShipment()
+
 
   "PaymentServiceImpl" should{
     "initiatePayment" should {
-
       "return authorization url when payment is valid" in {
 
         val callbackUrl = "https://callback.test"
 
-        when(paymentRepository.getPaymentById(payment.referenceNumber))
-          .thenReturn(Future.successful(None))
+        when(shipmentRepository.getById(payment.shipmentId))
+          .thenReturn(Future.successful(Some(shipment)))
 
-        when(paymentRepository.makePayment(payment))
-          .thenReturn(Future.successful(Success(1)))
+        when(paymentRepository.getPaymentByShipmentId(payment.shipmentId))
+          .thenReturn(Future.successful(None))
 
         when(gateway.initiatePayment(payment, callbackUrl))
           .thenReturn(
@@ -57,30 +60,28 @@ class PaymentServiceImplSpec extends AsyncWordSpec
             )
           )
 
-        service
-          .initiatePayment(payment, callbackUrl)
-          .map { _ =>
+        service.initiatePayment(payment, callbackUrl).map { result =>
+          result.isRight mustBe true
+        }
 
-            verify(paymentRepository).makePayment(payment)
-            verify(gateway).initiatePayment(payment, callbackUrl)
-
-            succeed
-          }
       }
-
       "fail if payment already exists" in {
 
         val callbackUrl = "https://callback.test"
 
-        when(paymentRepository.getPaymentById(payment.referenceNumber))
+        when(shipmentRepository.getById(payment.shipmentId))
+          .thenReturn(Future.successful(Some(shipment)))
+
+        when(paymentRepository.getPaymentByShipmentId(payment.shipmentId))
           .thenReturn(Future.successful(Some(payment)))
 
-        recoverToSucceededIf[IllegalStateException] {
+        service.initiatePayment(payment, callbackUrl).map { result =>
 
-          service.initiatePayment(payment, callbackUrl)
+          result.isLeft mustBe true
 
         }
       }
+
       "handleWebhook" should {
 
         "update payment to successful when webhook status is success" in {

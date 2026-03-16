@@ -59,6 +59,13 @@ class SupportCenterE2ESpec
         val baseUrl = s"http://localhost:$port/complaints"
 
 
+        val createUserResponse = Await.result(
+          wsClient.url(s"http://localhost:$port/users/signUp").post(validUserPayload),
+          5.seconds
+        )
+
+        createUserResponse.status mustBe CREATED
+        val createdUserId = (createUserResponse.json \ "id").as[String]
 
         val shipmentResponse = Await.result(
           wsClient.url(s"http://localhost:$port/shipments")
@@ -72,7 +79,7 @@ class SupportCenterE2ESpec
           (shipmentResponse.json \ "id").as[String]
 
       val  validComplaintPayload:JsValue = Json.obj(
-          "userId" -> UUID.randomUUID().toString,
+          "userId" -> createdUserId,
           "shipmentId" -> shipmentId,
           "subject" ->  "Complaint",
           "description" -> "Package damaged",
