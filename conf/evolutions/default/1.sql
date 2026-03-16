@@ -1,33 +1,31 @@
 -- !Ups
 
-CREATE TABLE shipments (
-  id uuid PRIMARY KEY,
-tracking_number TEXT,
-CONSTRAINT uq_shipments_tracking_number UNIQUE (tracking_number),
-  sender_name TEXT NOT NULL,
-  recipient_name TEXT NOT NULL,
-  recipient_street TEXT NOT NULL,
-  recipient_city TEXT NOT NULL,
-  recipient_state TEXT NOT NULL,
-  recipient_country TEXT NOT NULL,
-  recipient_postal_code TEXT NOT NULL,
-  recipient_contact TEXT NOT NULL,
-  weight NUMERIC  NOT NULL,
-  length NUMERIC  NOT NULL,
-  width NUMERIC  NOT NULL,
-  height NUMERIC  NOT NULL,
-  contents TEXT,
-  status TEXT NOT NULL,
-  estimated_delivery_date TIMESTAMP WITH TIME ZONE,
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  cost NUMERIC(12,2) NOT NULL,
- proof_of_delivery TEXT
+CREATE TABLE users(
+    id UUID PRIMARY KEY,
+    name TEXT NOT NULL,
+    username TEXT NOT NULL,
+    hash_password TEXT NOT NULL,
+    phone_number TEXT,
+    role TEXT NOT NULL,
+    status TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE INDEX idx_shipments_status ON shipments(status);
+CREATE UNIQUE INDEX idx_users_username_unique
+    ON users(username);
+
+CREATE INDEX idx_users_status
+    ON users(status);
+
+CREATE INDEX idx_users_role
+    ON users(role);
+
 
 -- !Downs
 
-DROP INDEX IF EXISTS idx_shipments_status;
-DROP TABLE IF EXISTS shipments;
+DROP INDEX IF EXISTS idx_users_username_unique;
+DROP INDEX IF EXISTS idx_users_status;
+DROP INDEX IF EXISTS idx_users_role;
+
+DROP TABLE IF EXISTS users;

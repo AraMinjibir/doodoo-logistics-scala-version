@@ -1,31 +1,35 @@
 -- !Ups
 
-CREATE TABLE users(
+CREATE TABLE support_center(
     id UUID PRIMARY KEY,
-    name TEXT NOT NULL,
-    username TEXT NOT NULL,
-    hash_password TEXT NOT NULL,
-    phone_number TEXT,
-    role TEXT NOT NULL,
+    user_id UUID,
+    shipment_id UUID,
+
+    subject TEXT NOT NULL,
+    description TEXT NOT NULL,
     status TEXT NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE
+
+    created_at TIMESTAMP NOT NULL,
+    resolved_at TIMESTAMP NULL,
+    resolved_by UUID NULL,
+
+    comment TEXT,
+
+    CONSTRAINT support_center_shipment_fk
+        FOREIGN KEY (shipment_id)
+        REFERENCES shipments(id)
+        ON DELETE CASCADE,
+
+    CONSTRAINT support_center_user_fk
+            FOREIGN KEY (user_id)
+            REFERENCES users(id)
+            ON DELETE CASCADE
 );
 
-CREATE UNIQUE INDEX idx_users_username_unique
-    ON users(username);
-
-CREATE INDEX idx_users_status
-    ON users(status);
-
-CREATE INDEX idx_users_role
-    ON users(role);
-
+CREATE INDEX idx_support_center_status
+    ON support_center(status);
 
 -- !Downs
 
-DROP INDEX IF EXISTS idx_users_username_unique;
-DROP INDEX IF EXISTS idx_users_status;
-DROP INDEX IF EXISTS idx_users_role;
-
-DROP TABLE IF EXISTS users;
+DROP INDEX IF EXISTS idx_support_center_status;
+DROP TABLE IF EXISTS support_center;
