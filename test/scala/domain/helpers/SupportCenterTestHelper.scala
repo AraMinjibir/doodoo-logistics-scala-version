@@ -1,6 +1,7 @@
 package scala.domain.helpers
 
 import domain.models.{Complaint, ComplaintStatus}
+import play.api.libs.json.{JsValue, Json}
 
 import java.time.Instant
 import java.util.UUID
@@ -42,7 +43,8 @@ trait SupportCenterTestHelper {
       errors
     )
   }
-  def newComplaint(userId: UUID = UUID.fromString("11111111-1111-1111-1111-111111111111"),
+  def newComplaint(
+                  userId:UUID,
                 shipmentId: UUID,
                 subject: String = "Complaint",
                 description: String = "Package lost"):Complaint =
@@ -57,6 +59,14 @@ trait SupportCenterTestHelper {
     )
 
 
-  val complaintPass = newComplaint(shipmentId = id)
+  val complaintPass = newComplaint(shipmentId = id, userId = id)
+
+  val validUserPayload = Json.obj(
+    "name" -> "Test User",
+    "email" -> "test@example.com",
+    "password" -> "hashed_pw",
+    "phone" -> "1234567890",
+    "role" -> "Admin"
+  )
 
 }

@@ -24,6 +24,7 @@ class PaymentTable(tag:Tag) extends Table[PaymentRow](tag,"payments") {
   def failureReason = column [Option[String]]("failure_reason")
 
   def paymentFrk = foreignKey("shipment_foreign_key", shipmentId, ShipmentsTable.table)(_.id, onDelete = Cascade)
+  def paymentFrk2 = foreignKey("user_foreign_key", customerId, UserTable.table)(_.id, onDelete = Cascade)
 
   def * :ProvenShape[PaymentRow] = (
     customerId,shipmentId,amount,status,paidAt,paymentMethod,referenceNumber,gatewayTransactionId,failureReason

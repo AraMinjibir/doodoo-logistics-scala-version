@@ -1,7 +1,7 @@
 package scala.domain.repository
 
 import domain.models.PaymentStatus
-import infrastructure.persistence.tables.{PaymentTable, ShipmentsTable}
+import infrastructure.persistence.tables.{PaymentTable, ShipmentsTable, UserTable}
 import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatest.matchers.should.Matchers
@@ -10,7 +10,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.inject.guice.GuiceApplicationBuilder
-import repositories.{PaymentRepository, ShipmentRepository}
+import repositories.{PaymentRepository, ShipmentRepository, UserRepository}
 import slick.jdbc.JdbcProfile
 
 import java.time.{LocalDate, ZoneId}
@@ -41,6 +41,7 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
 
   lazy val repo     = app.injector.instanceOf[PaymentRepository]
   lazy val shipmentRepo     = app.injector.instanceOf[ShipmentRepository]
+  lazy val userRepo = app.injector.instanceOf[UserRepository]
   lazy val dbConfig = app.injector.instanceOf[DatabaseConfigProvider].get[JdbcProfile]
   import dbConfig.profile.api._
 
@@ -48,7 +49,10 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
     val setupAction = DBIO.seq(
       PaymentTable.table.schema.dropIfExists,
       ShipmentsTable.table.schema.dropIfExists,
+      UserTable.table.schema.dropIfExists,
 
+
+      UserTable.table.schema.create,
       ShipmentsTable.table.schema.create,
       PaymentTable.table.schema.create
     )
@@ -60,17 +64,22 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
       dbConfig.db.run(
         DBIO.seq(
           PaymentTable.table.delete,
-          ShipmentsTable.table.delete
+          ShipmentsTable.table.delete,
+          UserTable.table.delete
         )), 5.seconds)
   }
 
+  val user = newUser
   val shipment = createTestShipment()
-  val payment =  newPayment(shipmentId = shipment.id)
+  val payment =  newPayment(shipmentId = shipment.id,customerId = user.id)
 
 
 
   "SlickPaymentRepository" should {
     "Persist a payment row into the database" in {
+
+      val newUser = Await.result(userRepo.createUser(user), 5.second)
+      newUser shouldBe Success(1)
 
       val shipmentResult = Await.result(shipmentRepo.create(shipment), 5.second)
       shipmentResult shouldBe Success(1)
@@ -88,6 +97,8 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
     }
     "Successfully update Payment status to Pending" in{
       val paymentStatus = PaymentStatus.Pending
+
+      Await.result(userRepo.createUser(user), 5.second)
 
       Await.result(shipmentRepo.create(shipment), 5.second)
 
@@ -111,6 +122,8 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
       row.status shouldBe paymentStatus
     }
     "Return a payment for a valid reference" in {
+       Await.result(userRepo.createUser(user), 5.second)
+
       Await.result(shipmentRepo.create(shipment), 5.second)
 
       Await.result(repo.makePayment(payment),5.second)
@@ -119,6 +132,9 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
       result.map(_.referenceNumber) shouldBe Some(payment.referenceNumber)
     }
     "Retrieve a payment by status" in {
+
+      Await.result(userRepo.createUser(user), 5.second)
+
       Await.result(shipmentRepo.create(shipment), 5.second)
 
       Await.result(repo.makePayment(payment), 5.second)
@@ -136,10 +152,12 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
       result shouldBe Seq.empty
     }
     "Return all payment inserted" in {
+      Await.result(userRepo.createUser(user), 5.second)
+
       Await.result(shipmentRepo.create(shipment), 5.second)
 
-      val firstPayment = newPayment(shipmentId = shipment.id)
-      val secondPayment = newPayment(shipmentId = shipment.id)
+      val firstPayment = newPayment(shipmentId = shipment.id,customerId = user.id)
+      val secondPayment = newPayment(shipmentId = shipment.id,customerId = user.id)
 
       Await.result(repo.makePayment(firstPayment), 5.second)
       Await.result(repo.makePayment(secondPayment), 5.second)
@@ -153,6 +171,8 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
 
       val testDate = LocalDate.of(2026, 3, 4)
 
+      Await.result(userRepo.createUser(user), 5.second)
+
       Await.result(shipmentRepo.create(shipment), 5.second)
 
       Await.result(repo.makePayment(payment), 5.second)
@@ -165,6 +185,7 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
 
       val startOfAWeek = LocalDate.of(2026, 3, 4)
 
+      Await.result(userRepo.createUser(user), 5.second)
       Await.result(shipmentRepo.create(shipment), 5.second)
       Await.result(repo.makePayment(payment), 5.second)
 
@@ -187,6 +208,7 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
         paidAt = aprilInstant
       )
 
+      Await.result(userRepo.createUser(user), 5.second)
       Await.result(shipmentRepo.create(shipment), 5.seconds)
       Await.result(repo.makePayment(payment), 5.seconds)
 
@@ -197,6 +219,7 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
     }
     "Successfully remove the payment inserted" in {
 
+      Await.result(userRepo.createUser(user), 5.second)
       Await.result(shipmentRepo.create(shipment), 5.second)
 
       Await.result(repo.makePayment(payment), 5.second)

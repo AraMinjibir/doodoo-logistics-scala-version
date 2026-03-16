@@ -17,7 +17,12 @@
         REFERENCES shipments(id)
         ON DELETE CASCADE,
         CONSTRAINT unique_payment_per_shipment
-                    UNIQUE (shipment_id)
+                    UNIQUE (shipment_id),
+
+        CONSTRAINT user_user_fk
+                    FOREIGN KEY (customer_id)
+                    REFERENCES users(id)
+                    ON DELETE CASCADE
         );
 
          CREATE INDEX idx_payments_status
