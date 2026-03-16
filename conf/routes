@@ -27,6 +27,9 @@ DELETE  /shipments/:shipmentId             controllers.ShipmentController.delete
 #Upload proof of delivery
 POST /shipments/tracking/:trackingNumber/proof-of-delivery      controllers.ShipmentController.uploadProofOfDelivery(trackingNumber: String)
 
+#Assign Service provider
+PATCH /shipments/:shipmentId/assign/:serviceProviderId         controllers.ShipmentController.assignServiceProvider(shipmentId: java.util.UUID, serviceProviderId:java.util.UUID)
+
 # Create complaint
 POST    /complaints                               controllers.SupportCenterController.sendComplaint
 

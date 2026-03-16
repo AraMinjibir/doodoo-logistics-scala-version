@@ -1,7 +1,7 @@
 package scala.domain.helpers
 
 import domain.errors.DomainError
-import domain.models.{Address, Dimensions, PackageDetails, ProofOfDelivery, Recipient, Shipment, ShipmentStatus}
+import domain.models.{Address, Dimensions, PackageDetails, ProofOfDelivery, Recipient, Shipment, ShipmentStatus, User, UserRole, UserStatus}
 import org.scalatest.Assertions._
 import play.api.Application
 import play.api.libs.json.{JsObject, JsValue, Json}
@@ -23,7 +23,7 @@ val fixedInstant: Instant = Instant.parse("2026-01-10T10:00:00Z")
 
   def testNow: Instant = Instant.now()
   val fixedNow = Instant.parse("2026-02-09T18:36:27Z")
-
+  val providerId = UUID.randomUUID()
 
   def createTestShipment(
                           id: UUID = shipmentId,
@@ -55,7 +55,8 @@ val fixedInstant: Instant = Instant.parse("2026-01-10T10:00:00Z")
       packageDetails = packageDetails,
       status = status,
       createdAt = testNow,
-      updatedAt = testNow
+      updatedAt = testNow,
+      serviceProviderId = None
     )
   }
 
@@ -131,9 +132,22 @@ def uploadProofOfDelivery: ProofOfDelivery = {
       trackingNumber = Some(trackingNumber),
       status = ShipmentStatus.Created,
       createdAt = now,
-      updatedAt = now
+      updatedAt = now,
+      serviceProviderId = None
     )
   }
+
+  val serviceProvider: User = User(
+    id = providerId,
+    name = "Service Provider",
+    email = "sp@test.com",
+    hashPassword = "serviceProvider12",
+    phone = "123456789",
+    role = UserRole.ServiceProvider,
+    status = UserStatus.Active,
+    createdAt = Instant.now(),
+    updatedAt = None
+  )
   // Default valid template
   def validCreatePayload: JsValue =
     Json.obj(
@@ -154,7 +168,9 @@ def uploadProofOfDelivery: ProofOfDelivery = {
       "length" -> 30.0,
       "width" -> 20.0,
       "height" -> 10.0,
-      "contents" -> "Clothing"
+      "contents" -> "Clothing",
+
+
     )
 
   def proofPayload = Json.obj(

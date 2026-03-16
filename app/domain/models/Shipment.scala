@@ -127,6 +127,7 @@ final case class Shipment(
                            createdAt: Instant = Instant.now(),
                            updatedAt: Instant = Instant.now(),
                            proofOfDelivery: Seq[ProofOfDelivery] = Seq.empty,
+                           serviceProviderId: Option[UUID],
                          ) {
   def cost: BigDecimal = {
     val weight = packageDetails.weightInKilograms

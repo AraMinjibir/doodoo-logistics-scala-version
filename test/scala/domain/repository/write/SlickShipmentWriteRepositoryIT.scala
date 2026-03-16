@@ -1,7 +1,7 @@
 package repositories.write
 
 import domain.models._
-import infrastructure.persistence.tables.ShipmentsTable
+import infrastructure.persistence.tables.{ShipmentsTable, UserTable}
 import org.scalatest.OptionValues.convertOptionToValuable
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatest.matchers.should.Matchers
@@ -9,9 +9,10 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.inject.guice.GuiceApplicationBuilder
-import repositories.SlickShipmentRepository
+import repositories.{SlickShipmentRepository, SlickUserRepository}
 import slick.jdbc.JdbcProfile
 
+import java.time.Instant
 import scala.domain.helpers.ShipmentTestHelpers
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
@@ -38,27 +39,36 @@ class SlickShipmentWriteRepositoryIT
         "slick.dbs.default.db.password" -> ""
       ).build()
 
-  lazy val repo     = app.injector.instanceOf[SlickShipmentRepository]
+  lazy val repo: SlickShipmentRepository = app.injector.instanceOf[SlickShipmentRepository]
+  lazy val userRepo: SlickUserRepository = app.injector.instanceOf[SlickUserRepository]
+
   lazy val dbConfig = app.injector.instanceOf[DatabaseConfigProvider].get[JdbcProfile]
   import dbConfig.profile.api._
 
   override def beforeAll(): Unit = {
     val setupAction = DBIO.seq(
       ShipmentsTable.table.schema.dropIfExists,
+      UserTable.table.schema.dropIfExists,
+
+
+      UserTable.table.schema.create,
       ShipmentsTable.table.schema.create
     )
     Await.result(dbConfig.db.run(setupAction), 5.seconds)
   }
 
   override def beforeEach(): Unit = {
-    Await.result(dbConfig.db.run(ShipmentsTable.table.delete), 5.seconds)
+    Await.result(dbConfig.db.run( DBIO.seq(
+      ShipmentsTable.table.delete,
+      UserTable.table.delete)
+    ), 5.seconds)
   }
 
   "SlickShipmentWriteRepository" should {
 
     "create" should {
       "persist a shipment row into the database" in {
-        val shipment = createTestShipment() // One-liner data creation
+        val shipment = createTestShipment()
 
         val result = Await.result(repo.create(shipment), 5.seconds)
         result shouldBe Success(1)
@@ -72,6 +82,9 @@ class SlickShipmentWriteRepositoryIT
     "update" should {
       "successfully update an existing shipment" in {
         // Arrange
+        val newUser = serviceProvider
+        Await.result(userRepo.createUser(newUser), 5.second)
+
         val shipment = createTestShipment()
         Await.result(repo.create(shipment), 5.seconds)
 
@@ -128,6 +141,74 @@ class SlickShipmentWriteRepositoryIT
         val rows = Await.result(dbConfig.db.run(ShipmentsTable.table.result), 5.second)
         rows.head.proofOfDelivery shouldBe List(proof)
       }
+    }
+
+    "assignServiceProvider" should {
+
+      "assign a service provider successfully" in {
+        // Arrange
+        val shipment = createTestShipment() // a helper that returns ShipmentRow
+        Await.result(repo.create(shipment), 5.seconds)
+
+        val newNewServiceProvider = serviceProvider
+        Await.result(userRepo.createUser(newNewServiceProvider), 5.seconds)
+
+        // Act
+        val result = Await.result(repo.assignServiceProvider(shipment.id, serviceProvider.id), 5.seconds)
+
+        // Assert
+        result shouldBe a[Success[_]]
+
+        val persisted = Await.result(
+          dbConfig.db.run(ShipmentsTable.table.filter(_.id === shipment.id).result.head),
+          5.seconds
+        )
+
+        persisted.serviceProviderId shouldBe Some(serviceProvider.id)
+        persisted.status shouldBe ShipmentStatus.Assigned
+      }
+
+      "fail if the user is not a service provider" in {
+        // Arrange
+        val shipment = createTestShipment()
+        Await.result(repo.create(shipment), 5.seconds)
+
+        val customer = User(
+          id = providerId,
+          name = "Customer Agent",
+          email = "agent@test.com",
+          hashPassword = "password123",
+          phone = "123456789",
+          role = UserRole.CustomerSupportAgent,
+          status = UserStatus.Active,
+          createdAt = Instant.now(),
+          updatedAt = None
+        )
+        Await.result(userRepo.createUser(customer), 5.seconds)
+
+        // Act
+        val result = Await.result(repo.assignServiceProvider(shipment.id, customer.id), 5.seconds)
+
+        // Assert
+        result.isFailure shouldBe true
+        result.failed.get.getMessage should include("User is not a service provider")
+      }
+
+      "fail if the shipment does not exist" in {
+        // Arrange
+        val newServiceProvider = serviceProvider
+        Await.result(userRepo.createUser(newServiceProvider), 5.seconds)
+
+        val nonExistentShipmentId = UUID.randomUUID()
+
+        // Act
+        val result = Await.result(repo.assignServiceProvider(nonExistentShipmentId, newServiceProvider.id), 5.seconds)
+
+        // Assert
+        result.isFailure shouldBe true
+        result.failed.get.getMessage should include("No shipment")
+      }
+
     }
   }
 

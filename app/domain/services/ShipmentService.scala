@@ -25,6 +25,9 @@ trait ShipmentService {
   def listShipments(offset: Int, limit: Int): Future[Seq[Shipment]]
   def deleteShipment(id: UUID): Future[Either[DomainError, Unit]]
   def uploadProofOfDelivery(trackingNumber: String, proof: ProofOfDelivery): Future[Either[List[DomainError], Shipment]]
-
+  def assignServiceProviderToShipment(
+                                       shipmentId: UUID,
+                                       providerId: UUID
+                                     ): Future[Either[DomainError, Shipment]]
 }
 

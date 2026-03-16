@@ -7,17 +7,17 @@ sealed trait ShipmentStatus extends Product with Serializable
 
 object ShipmentStatus {
 
-  case object Pending extends ShipmentStatus
   case object Created extends ShipmentStatus
+  case object Assigned extends ShipmentStatus
   case object InTransit extends ShipmentStatus
   case object OutForDelivery extends ShipmentStatus
   case object Delivered extends ShipmentStatus
   case object Cancelled extends ShipmentStatus
 
   val values: Seq[ShipmentStatus] =
-    Seq(Pending, Created, InTransit, OutForDelivery, Delivered, Cancelled)
+    Seq(Created,Assigned, InTransit, OutForDelivery, Delivered, Cancelled)
   private val allowedTransitions: Map[ShipmentStatus, Set[ShipmentStatus]] = Map(
-    ShipmentStatus.Created        -> Set(ShipmentStatus.InTransit, ShipmentStatus.Cancelled),
+    ShipmentStatus.Created        -> Set(ShipmentStatus.Assigned, ShipmentStatus.InTransit, ShipmentStatus.Cancelled),
     ShipmentStatus.InTransit      -> Set(ShipmentStatus.OutForDelivery, ShipmentStatus.Cancelled),
     ShipmentStatus.OutForDelivery -> Set(ShipmentStatus.Delivered, ShipmentStatus.Cancelled),
     ShipmentStatus.Delivered      -> Set.empty,
@@ -30,8 +30,8 @@ object ShipmentStatus {
 
   def toString(status: ShipmentStatus): String =
     status match {
-      case Pending           => "Pending"
       case Created           => "Created"
+      case Assigned          =>  "Assigned"
       case InTransit         => "InTransit"
       case OutForDelivery    => "OutForDelivery"
       case Delivered         => "Delivered"

@@ -192,7 +192,15 @@ class ShipmentController @Inject()(shipmentService: ShipmentService,
           }
       )
     }
+
+  def assignServiceProvider(shipmentId: UUID, providerId: UUID) = Action.async {
+    shipmentService.assignServiceProviderToShipment(shipmentId, providerId).map {
+      case Right(updatedShipment) => Ok(Json.toJson(CreateShipmentDto.toDto(updatedShipment)))
+      case Left(err)              => toResult(err)
+    }
   }
+
+}
 
 
 
