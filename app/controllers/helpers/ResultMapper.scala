@@ -43,7 +43,7 @@ trait ResultMapper {
           "to"      -> to.toString
         )
       )
-    case UsertCreationError(msg) => BadRequest(Json.obj("error" -> msg))
+    case UserCreationError(msg) => BadRequest(Json.obj("error" -> msg))
     case invalidLoginDetails(msg) => BadRequest(Json.obj("error" -> msg))
     case UpdateUserError(msg) => BadRequest(Json.obj("error" -> msg))
     case UserStatusUpdateError(msg) => BadRequest(Json.obj("error" -> msg))

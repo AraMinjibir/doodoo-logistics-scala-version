@@ -95,6 +95,7 @@ private[controllers] final case class CreateShipmentDto(
       senderName = this.senderName,
       recipient = recipient,
       packageDetails = packageDetails,
+      serviceProviderId = None
     )
   }
 
@@ -139,7 +140,8 @@ private[controllers] object CreateShipmentDto {
       estimatedDeliveryDate = domain.deliveryDateEstimate,
       createdAt = domain.createdAt,
       cost = domain.cost,
-      proofOfDelivery = domain.proofOfDelivery
+      proofOfDelivery = domain.proofOfDelivery,
+      serviceProviderId = domain.serviceProviderId
     )
   }
   def toRecipientDto(domainRecipient: domain.models.Recipient): RecipientDto = {
@@ -189,6 +191,7 @@ private[controllers] object CreateShipmentDto {
       senderName = dto.senderName,
       recipient = recipient,
       packageDetails = packageDetails,
+      serviceProviderId = None
     )
   }
 

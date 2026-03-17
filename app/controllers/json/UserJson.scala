@@ -14,7 +14,7 @@ object UserRoleJson {
         case JsString(value) =>
           domain.models.UserRole.fromString(value)
             .map(JsSuccess(_))
-            .getOrElse(JsError(s"Invalid shipment status: $value"))
+            .getOrElse(JsError(s"Invalid user role: $value"))
 
         case _ => JsError("UserRole must be a string")
       }

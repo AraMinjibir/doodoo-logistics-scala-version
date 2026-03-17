@@ -6,8 +6,9 @@ import slick.lifted.Tag
 import java.time.Instant
 import java.util.UUID
 import play.api.libs.json.{Format, Json, OFormat}
-import domain.models.{Address, ShipmentStatus, ProofOfDelivery}
+import domain.models.{Address, ProofOfDelivery, ShipmentStatus}
 import infrastructure.persistence.models.ShipmentRow
+import slick.model.ForeignKeyAction.Cascade
 
 class ShipmentsTable(tag: Tag) extends Table[ShipmentRow](tag, "shipments") {
 
@@ -34,6 +35,7 @@ class ShipmentsTable(tag: Tag) extends Table[ShipmentRow](tag, "shipments") {
   def createdAt = column[Instant]("created_at")
   def cost = column[BigDecimal]("cost")
   def proofOfDelivery = column[Seq[ProofOfDelivery]]("proof_of_delivery")
+  def  serviceProviderId = column[Option[UUID]]("service_provider")
 
   def * =
     (
@@ -57,8 +59,13 @@ class ShipmentsTable(tag: Tag) extends Table[ShipmentRow](tag, "shipments") {
       createdAt,
       updatedAt,
       cost,
-     proofOfDelivery
+     proofOfDelivery,
+      serviceProviderId
     ) <> ((ShipmentRow.apply _).tupled, ShipmentRow.unapply)
+
+  def serviceProviderFk =
+    foreignKey("service_provider_foreign_key", serviceProviderId, UserTable.table)(_.id.?, onDelete = Cascade)
+
 }
 
 object ShipmentsTable {

@@ -17,7 +17,8 @@ final case class ShipmentResponseDto(
                               estimatedDeliveryDate: Option[Instant],
                               createdAt: Instant,
                               cost: BigDecimal,
-                              proofOfDelivery: Seq[ProofOfDelivery] = Seq.empty
+                              proofOfDelivery: Seq[ProofOfDelivery] = Seq.empty,
+                              serviceProviderId: Option[UUID]
                                     )
 
 private[controllers] object ShipmentResponseDto {
@@ -59,7 +60,8 @@ private[controllers] object ShipmentResponseDto {
     estimatedDeliveryDate = domain.deliveryDateEstimate,
     createdAt = domain.createdAt,
     cost = domain.cost,
-    proofOfDelivery = domain.proofOfDelivery
+    proofOfDelivery = domain.proofOfDelivery,
+    serviceProviderId = domain.serviceProviderId
   )
   }
 }

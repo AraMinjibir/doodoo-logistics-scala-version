@@ -10,6 +10,7 @@ import controllers.json.ShipmentStatusJson._
 import domain.errors.ShipmentNotFoundById
 import domain.services.ShipmentService
 import play.api.Logger
+import play.mvc.Security.AuthenticatedAction
 
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
@@ -192,7 +193,22 @@ class ShipmentController @Inject()(shipmentService: ShipmentService,
           }
       )
     }
+
+  def assignServiceProvider(shipmentId: UUID, providerId: UUID): Action[AnyContent] = Action.async {
+    shipmentService.assignServiceProviderToShipment(shipmentId, providerId).map {
+      case Right(updatedShipment) => Ok(Json.toJson(CreateShipmentDto.toDto(updatedShipment)))
+      case Left(err)              => toResult(err)
+    }
   }
+
+  def assignedShipments(providerId: java.util.UUID): Action[AnyContent] = Action.async {
+    shipmentService
+      .getShipmentsForProvider(providerId)
+      .map { shipments =>
+        Ok(Json.toJson(shipments.map(ShipmentResponseDto.fromDomain)))
+      }
+  }
+}
 
 
 

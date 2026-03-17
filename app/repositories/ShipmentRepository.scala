@@ -16,4 +16,10 @@ trait ShipmentRepository {
   def findByTrackingNumber(trackingNumber: String) : Future[Option[Shipment]]
   def uploadProofOfDelivery(shipmentId: UUID,proof:ProofOfDelivery
                                     ): Future[Option[Shipment]]
+  def assignServiceProvider(
+                             shipmentId: UUID,
+                             providerId: UUID
+                           ): Future[Try[Int]]
+
+  def findByServiceProvider(providerId: UUID): Future[Seq[Shipment]]
 }

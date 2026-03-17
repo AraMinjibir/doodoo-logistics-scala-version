@@ -1,9 +1,9 @@
 package domain.services.impl
 import controllers.helpers.ResultMapper
-import domain.errors.{DomainError, ShipmentNotFound, ShipmentNotFoundById, UpdateProofOfDeliveryError, UpdateShipmentStatusError}
-import domain.models.{ProofOfDelivery, Shipment, ShipmentStatus}
+import domain.errors.{DomainError, NotAServiceProvide, ShipmentNotFound, ShipmentNotFoundById, UpdateProofOfDeliveryError, UpdateShipmentStatusError, UserNotFound, UserNotFoundWithId, ValidationError}
+import domain.models.{ProofOfDelivery, Shipment, ShipmentStatus, UserRole}
 import domain.services.ShipmentService
-import repositories.ShipmentRepository
+import repositories.{ShipmentRepository, UserRepository}
 
 import java.time.Instant
 import java.util.UUID
@@ -14,6 +14,7 @@ import scala.util.{Failure, Success}
 @Singleton
 class ShipmentServiceImpl @Inject()(
                                      repo: ShipmentRepository,
+                                     userRepository: UserRepository
                                    )(implicit ec: ExecutionContext) extends ShipmentService with ResultMapper {
 
 
@@ -131,5 +132,44 @@ class ShipmentServiceImpl @Inject()(
     }
   }
 
+  override def assignServiceProviderToShipment(
+                                                shipmentId: UUID,
+                                                providerId: UUID
+                                              ): Future[Either[DomainError, Shipment]] = {
+    // 1. Check that shipment exists
+    repo.getById(shipmentId).flatMap {
+      case None =>
+        Future.successful(Left(ShipmentNotFound(shipmentId.toString)))
 
+      case Some(shipment) =>
+        // 2. Check that the user exists and is a service provider
+        userRepository.findUserById(providerId).flatMap {
+          case None =>
+            Future.successful(Left(UserNotFoundWithId(providerId)))
+
+          case Some(user) if user.role != UserRole.ServiceProvider =>
+            Future.successful(Left(NotAServiceProvide(providerId)))
+
+          case Some(_) =>
+            // 3. Assign provider and update status
+            repo.assignServiceProvider(shipmentId, providerId).map {
+              case scala.util.Success(_) =>
+                // 4. Return the updated shipment
+                val updatedShipment = shipment.copy(
+                  serviceProviderId = Some(providerId),
+                  status = ShipmentStatus.Assigned,
+                  updatedAt = Instant.now()
+                )
+                Right(updatedShipment)
+
+              case Failure(ex) =>
+                Left(mapInsertException(ex))
+            }
+        }
+    }
+  }
+
+  override def getShipmentsForProvider(providerId: UUID): Future[Seq[Shipment]] = {
+    repo.findByServiceProvider(providerId)
+  }
 }

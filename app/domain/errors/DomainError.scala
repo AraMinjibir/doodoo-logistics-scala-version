@@ -140,6 +140,9 @@ final case class UserStatusIsNotActive(status: UserStatus) extends DomainError {
 final case class UserNotFound(email: String) extends DomainError {
   val message = s"User with the given email: $email not found"
 }
+final case class NotAServiceProvide(providerId: UUID) extends DomainError {
+  val message = s"User with id: $providerId is not a service provider"
+}
 final case class UserNotFoundWithId(userId: UUID) extends DomainError {
   val message = s"User with the given id: $userId is not found"
 }
@@ -159,7 +162,7 @@ case class InvalidCredentials() extends DomainError {
 case class UserDeletionError(cause: String) extends DomainError {
   val message = s"Unable to delete the user status: $cause"
 }
-case class UsertCreationError(cause: String) extends DomainError {
+case class UserCreationError(cause: String) extends DomainError {
   val message = s"Unable to create the user: $cause"
 }
 case class invalidLoginDetails(cause: String) extends DomainError {

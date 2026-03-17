@@ -1,11 +1,14 @@
 package repositories
 
 import com.google.inject.{Inject, Singleton}
-import domain.models.{ProofOfDelivery, Shipment, ShipmentStatus}
-import infrastructure.persistence.tables.ShipmentsTable
+import domain.models.{ProofOfDelivery, Shipment, ShipmentStatus, UserRole}
+import infrastructure.persistence.tables.{ShipmentsTable, UserTable}
 import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
+
 import infrastructure.persistence.tables.ShipmentsTable._
+import infrastructure.persistence.tables.UserTable._
+
 import mappers.ShipmentRowMapper
 
 import java.util.UUID
@@ -89,6 +92,51 @@ class SlickShipmentRepository @Inject()(dbConfigProvider: DatabaseConfigProvider
 
     db.run(action.transactionally)
       .map(_.map(mapper.fromRow))
+  }
+
+ override def assignServiceProvider(
+                             shipmentId: UUID,
+                             providerId: UUID
+                           ): Future[Try[Int]] = {
+
+    val spRole: UserRole = UserRole.ServiceProvider
+
+    val action = for {
+      // 1. Check if shipment exists
+      shipmentOpt <- ShipmentsTable.table.filter(_.id === shipmentId).result.headOption
+      shipment <- shipmentOpt match {
+        case Some(s) => DBIO.successful(s)
+        case None    => DBIO.failed(new IllegalArgumentException("No shipment found"))
+      }
+
+      // 2. Check if user exists and is a service provider
+      providerExists <- UserTable.table
+        .filter(u => u.id === providerId && u.role === spRole)
+        .exists
+        .result
+      _ <- if (providerExists)
+        DBIO.successful(())
+      else
+        DBIO.failed(new IllegalArgumentException("User is not a service provider"))
+
+      // 3. Update shipment with providerId and status
+      updatedRows <- ShipmentsTable.table
+        .filter(_.id === shipmentId)
+        .map(s => (s.serviceProviderId, s.status))
+        .update((Some(providerId), ShipmentStatus.Assigned))
+    } yield updatedRows
+
+    db.run(action.transactionally.asTry)
+  }
+
+
+  override def findByServiceProvider(providerId: UUID): Future[Seq[Shipment]] = {
+    val query =
+      q
+        .filter(_.serviceProviderId === Option(providerId))
+        .result
+
+    db.run(query).map(_.map(mapper.fromRow))
   }
 
 

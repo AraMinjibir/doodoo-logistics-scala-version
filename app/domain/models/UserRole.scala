@@ -9,9 +9,11 @@ object UserRole {
   case object Sender extends UserRole
   case object Recipient extends UserRole
   case object ServiceProvider extends UserRole
+  case object CustomerSupportAgent extends UserRole
+
 
   val values: Seq[UserRole] =
-    Seq(Admin,Sender, Recipient, ServiceProvider)
+    Seq(Admin,Sender, Recipient, ServiceProvider,CustomerSupportAgent)
 
 
   def fromString(value: String): Option[UserRole] =
@@ -23,6 +25,7 @@ object UserRole {
       case Sender     => "Sender"
       case Recipient       => "Recipient"
       case ServiceProvider => "ServiceProvider"
+      case CustomerSupportAgent => "CustomerSupportAgent"
     }
 
   //  Path bindable for type-safe routing

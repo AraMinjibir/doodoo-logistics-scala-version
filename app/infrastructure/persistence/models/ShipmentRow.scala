@@ -26,7 +26,8 @@ final case class ShipmentRow(
                               createdAt: Instant,
                               updatedAt: Instant,
                               cost: BigDecimal,
-                              proofOfDelivery: Seq[ProofOfDelivery]
+                              proofOfDelivery: Seq[ProofOfDelivery],
+                              serviceProviderId: Option[UUID],
                             ) {
   def recipientAddress: Address = Address.createAddress(
     recipientStreet,

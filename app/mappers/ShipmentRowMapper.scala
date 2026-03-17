@@ -35,7 +35,8 @@ class ShipmentRowMapper {
       createdAt = domain.createdAt,
       updatedAt = domain.updatedAt,
       cost = domain.cost,
-      proofOfDelivery = domain.proofOfDelivery
+      proofOfDelivery = domain.proofOfDelivery,
+      serviceProviderId = domain.serviceProviderId
     )
   }
   def fromRow(row: ShipmentRow): Shipment = {
@@ -61,7 +62,8 @@ class ShipmentRowMapper {
       status = row.status,
       createdAt = row.createdAt,
       updatedAt = row.updatedAt,
-      proofOfDelivery = row.proofOfDelivery
+      proofOfDelivery = row.proofOfDelivery,
+      serviceProviderId = row.serviceProviderId
     )
   }
 

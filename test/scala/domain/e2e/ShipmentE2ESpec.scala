@@ -65,6 +65,7 @@ class ShipmentE2ESpec
       }
 
       createResponse.status mustBe CREATED
+
       val trackingNumber = (createResponse.json \ "trackingNumber").as[String]
 
       // 2. GET BY TRACKING
@@ -117,8 +118,6 @@ class ShipmentE2ESpec
         5.seconds
       )
 
-      println("DELIVER RESPONSE BODY:")
-      println(deliverResponse.body)
 
       deliverResponse.status mustBe OK
 
@@ -132,6 +131,50 @@ class ShipmentE2ESpec
       proofResponse.status mustBe OK
       (proofResponse.json \ "status").as[String] mustBe "Delivered"
     }
+    "assign a service provider to a shipment" in {
+      val wsClient = app.injector.instanceOf[WSClient]
+      val baseUrl = s"http://localhost:$port/shipments"
+
+      // 1. CREATE a shipment first
+      val createResponse = Await.result(
+        wsClient.url(baseUrl).post(validCreatePayload),
+        10.seconds
+      )
+      createResponse.status mustBe CREATED
+      println(createResponse.body)
+      val shipmentId = (createResponse.json \ "id").as[String]
+
+      // 2. CREATE a service provider user
+      val providerPayload = Json.obj(
+        "name" -> "Service Provider",
+        "email" -> "doodooserviceprovider@mail.com",
+        "password" -> "secure123",
+        "phone" -> "07000040050",
+        "role" -> "ServiceProvider"
+      )
+      val providerResponse = Await.result(
+        wsClient.url(s"http://localhost:$port/users/signUp").post(providerPayload),
+        5.seconds
+      )
+
+      providerResponse.status mustBe CREATED
+
+
+      val providerId = (providerResponse.json \ "id").as[String]
+
+      // 3. ASSIGN service provider
+      val assignResponse = Await.result(
+        wsClient
+          .url(s"$baseUrl/$shipmentId/assign/$providerId")
+          .patch(Json.obj()),
+        5.seconds
+      )
+
+      assignResponse.status mustBe OK
+      (assignResponse.json \ "serviceProviderId").as[String] mustBe providerId
+      (assignResponse.json \ "status").as[String] mustBe "Assigned"
+    }
+
 
   }
 }
