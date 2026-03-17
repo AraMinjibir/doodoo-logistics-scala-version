@@ -18,10 +18,12 @@ object ShipmentStatus {
     Seq(Created,Assigned, InTransit, OutForDelivery, Delivered, Cancelled)
   private val allowedTransitions: Map[ShipmentStatus, Set[ShipmentStatus]] = Map(
     ShipmentStatus.Created        -> Set(ShipmentStatus.Assigned, ShipmentStatus.InTransit, ShipmentStatus.Cancelled),
-    ShipmentStatus.InTransit      -> Set(ShipmentStatus.OutForDelivery, ShipmentStatus.Cancelled),
-    ShipmentStatus.OutForDelivery -> Set(ShipmentStatus.Delivered, ShipmentStatus.Cancelled),
+    ShipmentStatus.Assigned      -> Set(ShipmentStatus.InTransit,ShipmentStatus.OutForDelivery, ShipmentStatus.Cancelled),
+    ShipmentStatus.InTransit -> Set(ShipmentStatus.OutForDelivery,ShipmentStatus.Delivered, ShipmentStatus.Cancelled),
+    ShipmentStatus.OutForDelivery      -> Set(ShipmentStatus.Delivered,ShipmentStatus.Cancelled),
     ShipmentStatus.Delivered      -> Set.empty,
-    ShipmentStatus.Cancelled      -> Set.empty
+    ShipmentStatus.Cancelled      -> Set.empty,
+
   )
 
 

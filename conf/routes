@@ -29,7 +29,7 @@ POST /shipments/tracking/:trackingNumber/proof-of-delivery      controllers.Ship
 
 #Assign Service provider
 PATCH /shipments/:shipmentId/assign/:serviceProviderId         controllers.ShipmentController.assignServiceProvider(shipmentId: java.util.UUID, serviceProviderId:java.util.UUID)
-GET   /shipments/assigned/:providerId   controllers.ShipmentController.assignedShipments(providerId: java.util.UUID)
+GET /shipments/assigned                                        controllers.ShipmentController.assignedShipments
 
 # Create complaint
 POST    /complaints                               controllers.SupportCenterController.sendComplaint
