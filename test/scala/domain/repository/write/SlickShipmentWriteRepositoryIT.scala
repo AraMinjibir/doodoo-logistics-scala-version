@@ -1,5 +1,6 @@
 package repositories.write
 
+import domain.models.ShipmentStatus.Assigned
 import domain.models._
 import infrastructure.persistence.tables.{ShipmentsTable, UserTable}
 import org.scalatest.OptionValues.convertOptionToValuable
@@ -147,7 +148,7 @@ class SlickShipmentWriteRepositoryIT
 
       "assign a service provider successfully" in {
         // Arrange
-        val shipment = createTestShipment() // a helper that returns ShipmentRow
+        val shipment = createTestShipment()
         Await.result(repo.create(shipment), 5.seconds)
 
         val newNewServiceProvider = serviceProvider
@@ -209,6 +210,43 @@ class SlickShipmentWriteRepositoryIT
         result.failed.get.getMessage should include("No shipment")
       }
 
+    }
+    "findByServiceProvider" should {
+
+      "return shipments assigned to the given service provider" in {
+        val providerId = UUID.randomUUID()
+
+
+
+        val newServiceProvider = serviceProvider.copy(id = providerId)
+        Await.result(userRepo.createUser(newServiceProvider), 5.seconds)
+
+        // Assign the shipment to this provider
+        val shipment = createTestShipment(
+          tracking = "SP-1",
+          status = ShipmentStatus.Assigned,
+          serviceProviderId = Some(providerId)
+        )
+
+
+        Await.result(repo.create(shipment), 5.seconds)
+
+
+        val result = Await.result(repo.findByServiceProvider(providerId), 5.seconds)
+
+        result should not be empty
+        result.head.status shouldBe ShipmentStatus.Assigned
+        result.flatMap(_.trackingNumber) should contain ("SP-1")
+      }
+
+      "return empty list if no shipments assigned to provider" in {
+        val providerId = UUID.randomUUID()
+        val shipment = createTestShipment()
+        Await.result(repo.create(shipment), 5.seconds)
+
+        val result = Await.result(repo.findByServiceProvider(providerId), 5.seconds)
+        result shouldBe empty
+      }
     }
   }
 

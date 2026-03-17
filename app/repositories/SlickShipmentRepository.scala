@@ -130,6 +130,14 @@ class SlickShipmentRepository @Inject()(dbConfigProvider: DatabaseConfigProvider
   }
 
 
+  override def findByServiceProvider(providerId: UUID): Future[Seq[Shipment]] = {
+    val query =
+      q
+        .filter(_.serviceProviderId === Option(providerId))
+        .result
+
+    db.run(query).map(_.map(mapper.fromRow))
+  }
 
 
 }

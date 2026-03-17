@@ -169,5 +169,7 @@ class ShipmentServiceImpl @Inject()(
     }
   }
 
-
+  override def getShipmentsForProvider(providerId: UUID): Future[Seq[Shipment]] = {
+    repo.findByServiceProvider(providerId)
+  }
 }

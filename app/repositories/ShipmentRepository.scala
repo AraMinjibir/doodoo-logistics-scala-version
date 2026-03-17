@@ -20,4 +20,6 @@ trait ShipmentRepository {
                              shipmentId: UUID,
                              providerId: UUID
                            ): Future[Try[Int]]
+
+  def findByServiceProvider(providerId: UUID): Future[Seq[Shipment]]
 }

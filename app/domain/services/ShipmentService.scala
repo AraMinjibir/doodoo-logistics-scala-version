@@ -29,5 +29,7 @@ trait ShipmentService {
                                        shipmentId: UUID,
                                        providerId: UUID
                                      ): Future[Either[DomainError, Shipment]]
+
+  def getShipmentsForProvider(providerId: UUID): Future[Seq[Shipment]]
 }
 

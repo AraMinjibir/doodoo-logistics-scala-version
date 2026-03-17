@@ -28,7 +28,8 @@ val fixedInstant: Instant = Instant.parse("2026-01-10T10:00:00Z")
   def createTestShipment(
                           id: UUID = shipmentId,
                           tracking: String = trackingNumber,
-                          status: ShipmentStatus = ShipmentStatus.Created
+                          status: ShipmentStatus = ShipmentStatus.Created,
+                          serviceProviderId: Option[UUID] = None
                         ): Shipment = {
 
     val address = Address
@@ -56,7 +57,7 @@ val fixedInstant: Instant = Instant.parse("2026-01-10T10:00:00Z")
       status = status,
       createdAt = testNow,
       updatedAt = testNow,
-      serviceProviderId = None
+      serviceProviderId = serviceProviderId
     )
   }
 
