@@ -1,8 +1,10 @@
 package controllers
 
 import com.google.inject.{Inject, Singleton}
+import controllers.action.AuthAction
 import controllers.dto.{CommentRequestDto, CommentResponseDto, ComplaintRequestDto, ComplaintResponseDto}
 import controllers.helpers.ResultMapper
+import domain.models.UserRole.{CustomerSupportAgent, Recipient, Sender}
 import domain.models.{Comment, ComplaintStatus}
 import domain.services.SupportCenterService
 import play.api.libs.json.{JsValue, Json}
@@ -14,10 +16,11 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class SupportCenterController @Inject()(
                                        supportCenterService: SupportCenterService,
+                                       authenticatedAction: AuthAction,
                                        cc: ControllerComponents
                                        )(implicit ec:ExecutionContext) extends AbstractController(cc) with ResultMapper{
 
-  def sendComplaint: Action[JsValue] = Action.async(parse.json){ request =>
+  def sendComplaint: Action[JsValue] = authenticatedAction.withRole(Set(Sender, Recipient)).async(parse.json){ request =>
     request.body.validate[ComplaintRequestDto].fold(
       errors => Future.successful(onValidationError(errors)),
 
@@ -33,7 +36,8 @@ class SupportCenterController @Inject()(
         }
       })
 }
-  def getComplaintById(complaintId:UUID):Action[AnyContent] = Action.async {
+  def getComplaintById(complaintId:UUID):Action[AnyContent] = authenticatedAction.withRole(Set(Sender, Recipient, CustomerSupportAgent))
+    .async {
     supportCenterService.getComplaintById(complaintId).map{
       case Some(complaint) => Ok(Json.toJson(ComplaintResponseDto.toDto(complaint)))
       case None =>  NotFound(Json.obj("message" -> s"Complaint with id: $complaintId not found"))
@@ -41,7 +45,7 @@ class SupportCenterController @Inject()(
       case e => handleException(e)
     }
   }
-  def getAllComplaint:Action[AnyContent] = Action.async{
+  def getAllComplaint:Action[AnyContent] = authenticatedAction.withRole(Set(CustomerSupportAgent)).async{
     supportCenterService.getAllComplaint.map{ complaint =>
       val complaintDto = complaint.map(ComplaintResponseDto.toDto)
       Ok(Json.toJson(complaintDto))
@@ -49,7 +53,7 @@ class SupportCenterController @Inject()(
       case ex => handleException(ex)
     }
   }
-  def getComplaintByStatus(status:ComplaintStatus):Action[AnyContent] = Action.async{
+  def getComplaintByStatus(status:ComplaintStatus):Action[AnyContent] = authenticatedAction.withRole(Set(CustomerSupportAgent)).async{
     supportCenterService.getComplaintByStatus(status).map{ complaintBystatus =>
       val complaintDto = complaintBystatus.map(ComplaintResponseDto.toDto)
       Ok(Json.toJson(complaintDto))
@@ -57,7 +61,7 @@ class SupportCenterController @Inject()(
       case ex => handleException(ex)
     }
   }
-  def markComplaintAsInProgress( complaintId: UUID):Action[AnyContent] = Action.async{
+  def markComplaintAsInProgress( complaintId: UUID):Action[AnyContent] = authenticatedAction.withRole(Set(CustomerSupportAgent)).async{
     supportCenterService.markComplaintAsInProgress(complaintId).map{
       case Right(updatedComplaint) => Ok(Json.toJson(ComplaintResponseDto.toDto(updatedComplaint)))
       case Left(err) => toResult(err)
@@ -65,7 +69,8 @@ class SupportCenterController @Inject()(
       case  e => handleException(e)
     }
   }
-  def markComplaintAsResolved(complaintId: UUID, agentId: UUID):Action[AnyContent] = Action.async{
+  def markComplaintAsResolved(complaintId: UUID, agentId: UUID):Action[AnyContent] = authenticatedAction.withRole(Set(CustomerSupportAgent))
+    .async{
     supportCenterService.markComplaintAsResolved(complaintId, agentId).map{
       case Right(resolvedValue) => Ok(Json.toJson(ComplaintResponseDto.toDto(resolvedValue)))
       case Left(error) => toResult(error)
@@ -74,7 +79,8 @@ class SupportCenterController @Inject()(
     }
   }
   def addComment(complaintId: UUID): Action[JsValue] =
-    Action.async(parse.json) { implicit request =>
+    authenticatedAction.withRole(Set(CustomerSupportAgent))
+      .async(parse.json) { implicit request =>
 
       request.body.validate[CommentRequestDto].fold(
 

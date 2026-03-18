@@ -57,20 +57,33 @@ class SupportCenterE2ESpec
 
         val wsClient = app.injector.instanceOf[WSClient]
         val baseUrl = s"http://localhost:$port/complaints"
+        val usersUrl = s"http://localhost:$port/users/signUp"
 
+        Await.result(wsClient.url(usersUrl).post(senderPayload), 5.seconds)
+        Await.result(wsClient.url(usersUrl).post(recipientPayload), 5.seconds)
+        Await.result(wsClient.url(usersUrl).post(agentPayload), 5.seconds)
+
+
+        val (senderToken, senderId) =
+          loginAndGetUser(wsClient, "sender@mail.com", "password123", port)
+
+        val (agentToken, agentId) =
+          loginAndGetUser(wsClient,"supportagent@mail.com", "password123", port)
 
         val createUserResponse = Await.result(
-          wsClient.url(s"http://localhost:$port/users/signUp").post(validUserPayload),
-          5.seconds
+          wsClient.url(s"http://localhost:$port/users/signUp")
+            .addHttpHeaders("Authorization" -> s"Bearer $senderToken")
+            .post(validUserPayload),
+          10.seconds
         )
 
         createUserResponse.status mustBe CREATED
-        val createdUserId = (createUserResponse.json \ "id").as[String]
 
         val shipmentResponse = Await.result(
           wsClient.url(s"http://localhost:$port/shipments")
+            .addHttpHeaders("Authorization" -> s"Bearer $senderToken")
             .post(validCreatePayload),
-          5.seconds
+          10.seconds
         )
 
         shipmentResponse.status mustBe CREATED
@@ -79,7 +92,7 @@ class SupportCenterE2ESpec
           (shipmentResponse.json \ "id").as[String]
 
       val  validComplaintPayload:JsValue = Json.obj(
-          "userId" -> createdUserId,
+          "userId" -> senderId,
           "shipmentId" -> shipmentId,
           "subject" ->  "Complaint",
           "description" -> "Package damaged",
@@ -88,12 +101,12 @@ class SupportCenterE2ESpec
 
 
         val createResponse = Await.result(
-          wsClient.url(baseUrl).post(validComplaintPayload),
+          wsClient.url(baseUrl)
+            .addHttpHeaders("Authorization" -> s"Bearer $senderToken")
+            .post(validComplaintPayload),
           10.seconds
         )
 
-//        println(s"CREATE STATUS: ${createResponse.status}")
-//        println(s"CREATE BODY: ${createResponse.body}")
         createResponse.status mustBe CREATED
 
         val complaintId =
@@ -104,8 +117,10 @@ class SupportCenterE2ESpec
 
 
         val getResponse = Await.result(
-          wsClient.url(s"$baseUrl/$complaintId").get(),
-          5.seconds
+          wsClient.url(s"$baseUrl/$complaintId")
+            .addHttpHeaders("Authorization" -> s"Bearer $senderToken")
+            .get(),
+          10.seconds
         )
 
         getResponse.status mustBe OK
@@ -116,8 +131,10 @@ class SupportCenterE2ESpec
 
 
         val getAllResponse = Await.result(
-          wsClient.url(baseUrl).get(),
-          5.seconds
+          wsClient.url(baseUrl)
+            .addHttpHeaders("Authorization" -> s"Bearer $agentToken")
+            .get(),
+          10.seconds
         )
 
         getAllResponse.status mustBe OK
@@ -128,13 +145,12 @@ class SupportCenterE2ESpec
 
 
         val byStatusResponse = Await.result(
-          wsClient.url(s"$baseUrl/status/Open").get(),
+          wsClient.url(s"$baseUrl/status/Open")
+            .addHttpHeaders("Authorization" -> s"Bearer $agentToken")
+            .get(),
           5.seconds
 
         )
-
-//        println("STEP STATUS: " + byStatusResponse.status)
-//        println("STEP BODY: " + byStatusResponse.body)
 
         byStatusResponse.status mustBe OK
         byStatusResponse.json.as[Seq[JsValue]].size must be >= 1
@@ -146,6 +162,7 @@ class SupportCenterE2ESpec
         val inProgressResponse = Await.result(
           wsClient
             .url(s"$baseUrl/$complaintId/in-progress")
+            .addHttpHeaders("Authorization" -> s"Bearer $agentToken")
             .patch(Json.obj()),
           5.seconds
         )
@@ -168,12 +185,11 @@ class SupportCenterE2ESpec
         val commentResponse = Await.result(
           wsClient
             .url(s"$baseUrl/$complaintUUID/comments")
+            .addHttpHeaders("Authorization" -> s"Bearer $agentToken")
             .post(commentPayload),
-          5.seconds
+          10.seconds
         )
 
-//        println("STEP STATUS: " +  commentResponse.status)
-//        println("STEP BODY: " +  commentResponse.body)
         commentResponse.status mustBe OK
         (commentResponse.json \ "message").as[String] mustBe "We are investigating this issue."
 
@@ -181,13 +197,12 @@ class SupportCenterE2ESpec
         // 7. MARK AS RESOLVED
 
 
-        val agentId = UUID.randomUUID()
-
         val resolveResponse = Await.result(
           wsClient
             .url(s"$baseUrl/$complaintId/resolve/$agentId")
+            .addHttpHeaders("Authorization" -> s"Bearer $agentToken")
             .patch(Json.obj()),
-          5.seconds
+          10.seconds
         )
 
         resolveResponse.status mustBe OK
@@ -198,8 +213,10 @@ class SupportCenterE2ESpec
 
 
         val finalGet = Await.result(
-          wsClient.url(s"$baseUrl/$complaintId").get(),
-          5.seconds
+          wsClient.url(s"$baseUrl/$complaintId")
+            .addHttpHeaders("Authorization" -> s"Bearer $agentToken")
+            .get(),
+          10.seconds
         )
 
         (finalGet.json \ "status").as[String] mustBe "Resolved"
