@@ -38,8 +38,16 @@ class PaymentServiceImpl @Inject()(
 
           case None =>
             // 3. Call payment gateway and wrap in Right
-            gateway.initiatePayment(payment, callbackUrl).map { gatewayResp =>
-              Right(gatewayResp)
+            gateway.initiatePayment(payment, callbackUrl).flatMap { gatewayResp =>
+
+              val paymentToSave = payment.copy(
+                referenceNumber = gatewayResp.reference,
+                status = PaymentStatus.Pending
+              )
+
+              paymentRepository.savePayment(paymentToSave).map { _ =>
+                Right(gatewayResp)
+              }
             }
         }
     }

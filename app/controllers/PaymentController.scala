@@ -1,8 +1,10 @@
 package controllers
 
 import com.google.inject.{Inject, Singleton}
+import controllers.action.AuthAction
 import controllers.dto.{PaymentRequestDto, PaymentResponseDto}
 import controllers.helpers.ResultMapper
+import domain.models.UserRole.{Admin, CustomerSupportAgent}
 import domain.models.{PaymentMethod, PaymentStatus}
 import domain.services.PaymentService
 import play.api.libs.json.{JsValue, Json}
@@ -14,6 +16,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class PaymentController @Inject()(
                                  paymentService: PaymentService,
+                                 authenticatedAction: AuthAction,
                                  cc: ControllerComponents
                                  )(implicit ex:ExecutionContext)
                                   extends AbstractController(cc)
@@ -64,7 +67,8 @@ class PaymentController @Inject()(
       }
   }
 
-  def getPaymentById(ref: String):Action[AnyContent] = Action.async{
+  def getPaymentByReference(ref: String):Action[AnyContent] = authenticatedAction.withRole(Set(Admin, CustomerSupportAgent))
+    .async{
     paymentService.getPaymentById(ref).map{
       case Some(payment) => Ok(Json.toJson(PaymentResponseDto.toPaymentResponseDto(payment)))
       case None => NotFound(Json.obj("message" -> s"No payment found with the given id:$ref"))
@@ -73,7 +77,8 @@ class PaymentController @Inject()(
         handleException(ex)
     }
   }
-  def getPaymentByStatus(status:PaymentStatus):Action[AnyContent] = Action.async{
+  def getPaymentByStatus(status:PaymentStatus):Action[AnyContent] = authenticatedAction.withRole(Set(Admin, CustomerSupportAgent))
+    .async{
     paymentService.getPaymentStatus(status).map{ paymentByStatus =>
       val paymentDto = paymentByStatus.map(PaymentResponseDto.toPaymentResponseDto)
       Ok(Json.toJson(paymentDto))
@@ -83,7 +88,8 @@ class PaymentController @Inject()(
         handleException(ex)
     }
   }
-  def getPaymentByMethod(method: PaymentMethod):Action[AnyContent] = Action.async{
+  def getPaymentByMethod(method: PaymentMethod):Action[AnyContent] = authenticatedAction.withRole(Set(Admin, CustomerSupportAgent))
+    .async{
     paymentService.getPaymentByMethod(method).map{ paymentByMethod =>
       val paymentDto = paymentByMethod.map(PaymentResponseDto.toPaymentResponseDto)
 
@@ -93,7 +99,8 @@ class PaymentController @Inject()(
     }
   }
 
-  def getAllPayments: Action[AnyContent] = Action.async{
+  def getAllPayments: Action[AnyContent] = authenticatedAction.withRole(Set(Admin))
+    .async{
     paymentService.getAllPayment.map{ payments =>
       val paymentDto = payments.map(PaymentResponseDto.toPaymentResponseDto)
       Ok(Json.toJson(paymentDto))
@@ -101,14 +108,16 @@ class PaymentController @Inject()(
       case e => handleException(e)
     }
   }
-  def deletePayment(ref:String):Action[AnyContent] = Action.async{
+  def deletePayment(ref:String):Action[AnyContent] = authenticatedAction.withRole(Set(Admin))
+    .async{
     paymentService.deletePayment(ref).map{
       case Right(_) => NoContent
       case Left(err) => BadRequest(Json.obj("message" -> err))
     }
   }
 
-  def getDailyRevenue(date: String): Action[AnyContent] = Action.async {
+  def getDailyRevenue(date: String): Action[AnyContent] = authenticatedAction.withRole(Set(Admin))
+    .async {
 
     val parsedDate = LocalDate.parse(date)
 
@@ -122,7 +131,8 @@ class PaymentController @Inject()(
     }
 
   }
-  def getWeeklyRevenue(date: String): Action[AnyContent] = Action.async {
+  def getWeeklyRevenue(date: String): Action[AnyContent] = authenticatedAction.withRole(Set(Admin))
+    .async {
 
     val parsedDate = LocalDate.parse(date)
 
@@ -136,7 +146,8 @@ class PaymentController @Inject()(
     }
 
   }
-  def getMonthlyRevenue(year: Int, month: Int): Action[AnyContent] = Action.async {
+  def getMonthlyRevenue(year: Int, month: Int): Action[AnyContent] = authenticatedAction.withRole(Set(Admin))
+    .async {
 
     paymentService.getMonthlyRevenue(year, month).map { revenue =>
       Ok(Json.obj(

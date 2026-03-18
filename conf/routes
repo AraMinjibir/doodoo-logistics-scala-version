@@ -50,7 +50,7 @@ POST /complaints/:complaintId/comments              controllers.SupportCenterCon
 POST   /payments/makePayment         controllers.PaymentController.makePayment(callbackUrl: String)
 POST   /webhooks/payments            controllers.PaymentController.handleWebhook
 
-GET         /payments/:ref                controllers.PaymentController.getPaymentById(ref: String)
+GET         /payments/:ref                controllers.PaymentController.getPaymentByReference(ref: String)
 GET         /payments/status/:status        controllers.PaymentController.getPaymentByStatus(status:domain.models.PaymentStatus)
 GET         /payments/method/:method        controllers.PaymentController.getPaymentByMethod(method: domain.models.PaymentMethod)
 GET         /payments                       controllers.PaymentController.getAllPayments
