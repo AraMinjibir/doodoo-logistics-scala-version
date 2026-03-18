@@ -6,7 +6,7 @@ import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 import play.api.libs.ws.WSClient
 import play.api.http.Status.{CREATED, NO_CONTENT, OK}
 
@@ -55,20 +55,64 @@ class PaymentE2ESpec
 
       val wsClient = app.injector.instanceOf[WSClient]
       val baseUrl = s"http://localhost:$port/payments"
+      val usersUrl = s"http://localhost:$port/users/signUp"
+
+      //Create Authorities
+
+      Await.result(wsClient.url(usersUrl).post(adminPayload), 5.seconds)
+      Await.result(wsClient.url(usersUrl).post(senderPayload), 5.seconds)
+      def loginAndGetUser(wsClient: WSClient, email: String, password: String, port: Int): (String, String) = {
+        val response = Await.result(
+          wsClient
+            .url(s"http://localhost:$port/users/login")
+            .post(Json.obj(
+              "email" -> email,
+              "hashPassword" -> password
+            )),
+          5.seconds
+        )
+
+
+        response.status mustBe OK
+
+        val token = (response.json \ "token").as[String]
+        val id = (response.json \ "id").as[String]
+
+        (token, id)
+      }
+
+      val agentPayload: JsObject = Json.obj(
+        "name" -> "Support Agent",
+        "email" -> "supportagent@mail.com",
+        "password" -> "password123",
+        "phone" -> "07000000002",
+        "role" -> "CustomerSupportAgent"
+      )
+
+      Await.result(wsClient.url(usersUrl).post(agentPayload), 5.seconds)
+
+      val (adminToken, adminId) =
+        loginAndGetUser(wsClient, "admin@mail.com", "password123", port)
+      val (agentToken, agentId) =
+        loginAndGetUser(wsClient, "supportagent@mail.com", "password123", port)
+      val (senderToken, senderId) =
+        loginAndGetUser(wsClient, "sender@mail.com", "password123", port)
+
 
       // 0. Create a shipment first
       val shipmentResponse = Await.result(
         wsClient.url(s"http://localhost:$port/shipments")
+          .addHttpHeaders("Authorization" -> s"Bearer $senderToken")
           .post(validCreatePayload),
         5.seconds
       )
       shipmentResponse.status mustBe CREATED
       val shipmentId = (shipmentResponse.json \ "id").as[String]
 
-      val customerId = UUID.randomUUID()
+//      val customerId = UUID.randomUUID()
 
       val createPayload = Json.obj(
-        "customerId" -> customerId.toString,
+        "customerId" -> senderId,
         "shipmentId" -> shipmentId,
         "amount" -> 5000,
         "paymentMethod" -> "Card"
@@ -87,11 +131,22 @@ class PaymentE2ESpec
       createResponse.status mustBe CREATED
       val reference = (createResponse.json \ "referenceNumber").as[String]
 
-      // 2. GET PAYMENT BY REF
-      val getResponse = Await.result(
-        wsClient.url(s"$baseUrl/$reference").get(),
+      val debugFetch = Await.result(
+        wsClient.url(s"$baseUrl/$reference")
+          .addHttpHeaders("Authorization" -> s"Bearer $agentToken")
+          .get(),
         5.seconds
       )
+
+
+      // 2. GET PAYMENT BY REF
+      val getResponse = Await.result(
+        wsClient.url(s"$baseUrl/$reference")
+          .addHttpHeaders("Authorization" -> s"Bearer $agentToken")
+          .get(),
+        5.seconds
+      )
+
       getResponse.status mustBe OK
       (getResponse.json \ "status").as[String] mustBe "Pending"
 
@@ -109,14 +164,18 @@ class PaymentE2ESpec
 
       // 4. VERIFY STATUS UPDATED
       val updatedPayment = Await.result(
-        wsClient.url(s"$baseUrl/$reference").get(),
+        wsClient.url(s"$baseUrl/$reference")
+          .addHttpHeaders("Authorization" -> s"Bearer $adminToken")
+          .get(),
         5.seconds
       )
       (updatedPayment.json \ "status").as[String] mustBe "Successful"
 
       // 5. GET BY STATUS
       val statusResponse = Await.result(
-        wsClient.url(s"$baseUrl/status/Successful").get(),
+        wsClient.url(s"$baseUrl/status/Successful")
+          .addHttpHeaders("Authorization" -> s"Bearer $adminToken")
+          .get(),
         5.seconds
       )
 
@@ -128,6 +187,7 @@ class PaymentE2ESpec
       val revenueResponse = Await.result(
         wsClient.url(s"$baseUrl/revenue/daily")
           .addQueryStringParameters("date" -> today)
+          .addHttpHeaders("Authorization" -> s"Bearer $adminToken")
           .get(),
         5.seconds
       )
@@ -137,7 +197,9 @@ class PaymentE2ESpec
 
       // 7. DELETE PAYMENT
       val deleteResponse = Await.result(
-        wsClient.url(s"$baseUrl/$reference").delete(),
+        wsClient.url(s"$baseUrl/$reference")
+          .addHttpHeaders("Authorization" -> s"Bearer $adminToken")
+          .delete(),
         5.seconds
       )
 

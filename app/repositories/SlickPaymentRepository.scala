@@ -35,7 +35,7 @@ class SlickPaymentRepository @Inject()(
     db.run(query).map(_.getOrElse(BigDecimal(0)))
   }
 
-  override def makePayment(payment: Payment): Future[Try[Int]] = {
+  override def savePayment(payment: Payment): Future[Try[Int]] = {
     val row = mapper.fromDomain(payment)
     val insert = q += row
     db.run(insert.asTry)

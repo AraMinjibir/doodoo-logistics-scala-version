@@ -1,11 +1,16 @@
 package scala.domain.helpers
 
 import domain.models.{Complaint, ComplaintStatus}
-import play.api.libs.json.{JsValue, Json}
+import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
+import play.api.http.Status.OK
+import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.ws.WSClient
 
 import java.time.Instant
 import java.util.UUID
 import scala.collection.immutable.{List, Seq}
+import scala.concurrent.Await
+import scala.concurrent.duration.DurationInt
 
 trait SupportCenterTestHelper {
   val id = UUID.randomUUID()
@@ -59,14 +64,15 @@ trait SupportCenterTestHelper {
     )
 
 
-  val complaintPass = newComplaint(shipmentId = id, userId = id)
+  val complaintPass: Complaint = newComplaint(shipmentId = id, userId = id)
 
-  val validUserPayload = Json.obj(
+  val validUserPayload: JsObject = Json.obj(
     "name" -> "Test User",
     "email" -> "test@example.com",
     "password" -> "hashed_pw",
     "phone" -> "1234567890",
     "role" -> "Admin"
   )
+
 
 }

@@ -1,12 +1,14 @@
 package controllers
 
 import com.google.inject.{Inject, Singleton}
+import controllers.action.AuthAction
 import controllers.helpers.ResultMapper
 import controllers.dto.{LoginDto, SignUpDto, UserResponseDto}
 import domain.errors.UserAlreadyExists
+import domain.models.UserRole.Admin
 import domain.models.{UserRole, UserStatus}
 import domain.services.UserService
-import play.api.libs.json.{ JsValue, Json}
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 
 import java.util.UUID
@@ -15,6 +17,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class UserController @Inject()(
                               userService: UserService,
+                              authenticatedAction: AuthAction,
                                 cc: ControllerComponents
                               )(implicit ex:ExecutionContext)
                               extends AbstractController(cc)
@@ -77,7 +80,7 @@ class UserController @Inject()(
     )
   }
 
-  def listAllUsers: Action[AnyContent] = Action.async {
+  def listAllUsers: Action[AnyContent] = authenticatedAction.withRole(Set(Admin)).async {
     userService.listAllUsers.map { users =>
       Ok(Json.toJson(users.map(user => UserResponseDto.toUserResponseDto(user, ""))))
     }.recover{
@@ -86,7 +89,8 @@ class UserController @Inject()(
     }
   }
 
-  def getUserById(userId:UUID): Action[AnyContent] = Action.async {
+  def getUserById(userId:UUID): Action[AnyContent] = authenticatedAction.withRole(Set(Admin))
+    .async {
     userService.findUserById(userId).map {
       case Some(user) => Ok(Json.toJson(UserResponseDto.toUserResponseDto(user, "")))
       case None       => NotFound(Json.obj("error" -> s"User not found with ID $userId"))
@@ -95,7 +99,8 @@ class UserController @Inject()(
         handleException(ex)
     }
   }
-  def getUserByUsername(username: String): Action[AnyContent] = Action.async{
+  def getUserByUsername(username: String): Action[AnyContent] = authenticatedAction.withRole(Set(Admin))
+    .async{
     userService.findUserByUsername(username).map{
       case Some(user) => Ok(Json.toJson(UserResponseDto.toUserResponseDto(user, "")))
       case None => NotFound(Json.obj("error" -> s"No user found with this username: $username"))
@@ -104,7 +109,8 @@ class UserController @Inject()(
         handleException(ex)
     }
   }
-  def getUserByRole(role: UserRole): Action[AnyContent] = Action.async{
+  def getUserByRole(role: UserRole): Action[AnyContent] = authenticatedAction.withRole(Set(Admin))
+    .async{
     userService.findUserByRole(role).map{users =>
       Ok(Json.toJson(users.map(user => UserResponseDto.toUserResponseDto(user, ""))))
 
@@ -113,12 +119,14 @@ class UserController @Inject()(
         handleException(ex)
     }
   }
-  def getUserByStatus(status:UserStatus): Action[AnyContent] = Action.async {
+  def getUserByStatus(status:UserStatus): Action[AnyContent] = authenticatedAction.withRole(Set(Admin))
+    .async {
     userService.findUserByStatus(status).map { users =>
       Ok(Json.toJson(users.map(user => UserResponseDto.toUserResponseDto(user, ""))))
     }
   }
-  def updateUser(id: UUID): Action[JsValue] = Action.async(parse.json) { implicit request =>
+  def updateUser(id: UUID): Action[JsValue] = authenticatedAction.withRole(Set(Admin))
+    .async(parse.json) { implicit request =>
     request.body.validate[SignUpDto].fold(
       errors => Future.successful(onValidationError(errors)),
       dto =>
@@ -139,7 +147,8 @@ class UserController @Inject()(
     }
   }
 
-  def updateStatus(userId:UUID, status: UserStatus): Action[AnyContent] = Action.async {
+  def updateStatus(userId:UUID, status: UserStatus): Action[AnyContent] = authenticatedAction.withRole(Set(Admin))
+    .async {
     userService.updateUserStatus(userId, status).map {
       case Left(err)        => toResult(err)
       case Right(updatedUser) =>
@@ -150,7 +159,8 @@ class UserController @Inject()(
     }
   }
 
-  def deleteUser(userId:UUID): Action[AnyContent] = Action.async {
+  def deleteUser(userId:UUID): Action[AnyContent] = authenticatedAction.withRole(Set(Admin))
+    .async {
 
     userService.deleteUser(userId).map {
       case Left(err) => toResult(err)

@@ -9,7 +9,7 @@ import scala.util.Try
 
 trait PaymentRepository {
 
-  def makePayment(payment:Payment): Future[Try[Int]]
+  def savePayment(payment:Payment): Future[Try[Int]]
   def getPaymentById(ref:String):Future[Option[Payment]]
   def getPaymentStatus(status:PaymentStatus): Future[Seq[Payment]]
   def getPaymentByMethod(method: PaymentMethod): Future[Seq[Payment]]

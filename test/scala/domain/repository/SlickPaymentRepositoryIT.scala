@@ -84,7 +84,7 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
       val shipmentResult = Await.result(shipmentRepo.create(shipment), 5.second)
       shipmentResult shouldBe Success(1)
 
-      val result = Await.result(repo.makePayment(payment), 5.second)
+      val result = Await.result(repo.savePayment(payment), 5.second)
       result.isSuccess shouldBe true
 
       val row = Await.result(dbConfig.db.run(PaymentTable.table.result), 5.second)
@@ -102,7 +102,7 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
 
       Await.result(shipmentRepo.create(shipment), 5.second)
 
-      Await.result(repo.makePayment(payment), 5.second)
+      Await.result(repo.savePayment(payment), 5.second)
 
       val updatedPayment = payment.copy(
         customerId = payment.customerId,
@@ -126,7 +126,7 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
 
       Await.result(shipmentRepo.create(shipment), 5.second)
 
-      Await.result(repo.makePayment(payment),5.second)
+      Await.result(repo.savePayment(payment),5.second)
 
       val result = Await.result(repo.getPaymentById(payment.referenceNumber), 5.second)
       result.map(_.referenceNumber) shouldBe Some(payment.referenceNumber)
@@ -137,7 +137,7 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
 
       Await.result(shipmentRepo.create(shipment), 5.second)
 
-      Await.result(repo.makePayment(payment), 5.second)
+      Await.result(repo.savePayment(payment), 5.second)
 
       val updatedStatus = payment.copy(status = PaymentStatus.Successful)
 
@@ -159,8 +159,8 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
       val firstPayment = newPayment(shipmentId = shipment.id,customerId = user.id)
       val secondPayment = newPayment(shipmentId = shipment.id,customerId = user.id)
 
-      Await.result(repo.makePayment(firstPayment), 5.second)
-      Await.result(repo.makePayment(secondPayment), 5.second)
+      Await.result(repo.savePayment(firstPayment), 5.second)
+      Await.result(repo.savePayment(secondPayment), 5.second)
 
       val result = Await.result(repo.getAllPayment, 5.second)
 
@@ -175,7 +175,7 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
 
       Await.result(shipmentRepo.create(shipment), 5.second)
 
-      Await.result(repo.makePayment(payment), 5.second)
+      Await.result(repo.savePayment(payment), 5.second)
 
       val dailyRevenue = Await.result(repo.getDailyRevenue(testDate), 5.second)
 
@@ -187,7 +187,7 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
 
       Await.result(userRepo.createUser(user), 5.second)
       Await.result(shipmentRepo.create(shipment), 5.second)
-      Await.result(repo.makePayment(payment), 5.second)
+      Await.result(repo.savePayment(payment), 5.second)
 
       val weeklyRevenue = Await.result(repo.getWeeklyRevenue(startOfAWeek), 5.second)
 
@@ -210,7 +210,7 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
 
       Await.result(userRepo.createUser(user), 5.second)
       Await.result(shipmentRepo.create(shipment), 5.seconds)
-      Await.result(repo.makePayment(payment), 5.seconds)
+      Await.result(repo.savePayment(payment), 5.seconds)
 
       val monthlyRevenue =
         Await.result(repo.getMonthlyRevenue(year, month), 5.seconds)
@@ -222,7 +222,7 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
       Await.result(userRepo.createUser(user), 5.second)
       Await.result(shipmentRepo.create(shipment), 5.second)
 
-      Await.result(repo.makePayment(payment), 5.second)
+      Await.result(repo.savePayment(payment), 5.second)
 
       val result =  Await.result(repo.deletePayment(payment.referenceNumber), 5.second)
 

@@ -3,8 +3,10 @@ package scala.domain.helpers
 import domain.errors.DomainError
 import domain.models.{Address, Dimensions, PackageDetails, ProofOfDelivery, Recipient, Shipment, ShipmentStatus, User, UserRole, UserStatus}
 import org.scalatest.Assertions._
+import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
 import play.api.Application
 import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.ws.WSClient
 import play.api.mvc.AnyContentAsJson
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -150,29 +152,21 @@ def uploadProofOfDelivery: ProofOfDelivery = {
     updatedAt = None
   )
   // Default valid template
-  def validCreatePayload: JsValue =
-    Json.obj(
-      "senderName" -> "Ara Minjibir",
-
-      // Recipient fields (flat)
-      "name" -> "Test Recipient",
-      "contact" -> "08012345678",
-      "streetName" -> "Main St",
-      "streetNumber" -> "123",
-      "city" -> "Mjb",
-      "state" -> "Kano",
-      "country" -> "Nigeria",
-      "postalCode" -> "100001",
-
-      // Package fields (flat)
-      "weight" -> 30.0,
-      "length" -> 30.0,
-      "width" -> 20.0,
-      "height" -> 10.0,
-      "contents" -> "Clothing",
-
-
-    )
+  val validCreatePayload: JsValue = Json.obj(
+    "senderName"   -> "Ara Minjibir",        // required by DTO
+    "streetName"   -> "Main St",
+    "streetNumber" -> "123",
+    "city"         -> "Mjb",
+    "state"        -> "Kano",
+    "country"      -> "Nigeria",
+    "postalCode"   -> "100001",
+    "contact"      -> "08012345678",
+    "weight"       -> 30.0,
+    "length"       -> 30.0,
+    "width"        -> 20.0,
+    "height"       -> 10.0,
+    "contents"     -> "Clothing"
+  )
 
   def proofPayload = Json.obj(
     "image" -> "https://doodooImage.png",
@@ -197,6 +191,66 @@ def uploadProofOfDelivery: ProofOfDelivery = {
     val result = route(app, request).get
     Await.result(result, 5.seconds)
   }
+
+  def loginAndGetUser(wsClient: WSClient, email: String, password: String, port: Int): (String, String) = {
+    val response = Await.result(
+      wsClient
+        .url(s"http://localhost:$port/users/login")
+        .post(Json.obj(
+          "email" -> email,
+          "hashPassword" -> password
+        )),
+      5.seconds
+    )
+
+    println("LOGIN RESPONSE: " + response.body)
+
+    response.status mustBe OK
+
+    val token = (response.json \ "token").as[String]
+    val id = (response.json \ "id").as[String]
+
+    (token, id)
+  }
+
+  val senderPayload: JsObject = Json.obj(
+    "name" -> "Sender User",
+    "email" -> "sender@mail.com",
+    "password" -> "password123",
+    "phone" -> "07000000001",
+    "role" -> "Sender"
+  )
+
+  val adminPayload: JsObject = Json.obj(
+    "name" -> "Admin User",
+    "email" -> "admin@mail.com",
+    "password" -> "password123",
+    "phone" -> "07000000002",
+    "role" -> "Admin"
+  )
+  val agentPayload: JsObject = Json.obj(
+    "name" -> "Support Agent",
+    "email" -> "supportagent@mail.com",
+    "password" -> "password123",
+    "phone" -> "07000000002",
+    "role" -> "CustomerSupportAgent"
+  )
+
+  val providerPayload: JsObject = Json.obj(
+    "name" -> "Service Provider",
+    "email" -> "provider@mail.com",
+    "password" -> "password123",
+    "phone" -> "07000000003",
+    "role" -> "ServiceProvider"
+  )
+
+  val recipientPayload: JsObject = Json.obj(
+    "name" -> "Recipient User",
+    "email" -> "recipient@mail.com",
+    "password" -> "password123",
+    "phone" -> "07000000004",
+    "role" -> "Recipient"
+  )
 
 
 
