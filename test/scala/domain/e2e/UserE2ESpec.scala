@@ -3,8 +3,10 @@ package scala.domain.e2e
 import com.dimafeng.testcontainers.{ForAllTestContainer, PostgreSQLContainer}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
+import play.api.Application
+import play.api.http.Status.OK
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.libs.ws.WSClient
 
 import scala.concurrent.Await
@@ -16,7 +18,7 @@ class UserE2ESpec extends PlaySpec
 
   override val container: PostgreSQLContainer = PostgreSQLContainer("postgres:16-alpine")
 
-  override def fakeApplication() = {
+  override def fakeApplication(): Application = {
     // These values are generated dynamically by Docker
     new GuiceApplicationBuilder()
       .configure(
@@ -94,15 +96,56 @@ class UserE2ESpec extends PlaySpec
 
         jwt must not be empty
 
-        //  GET USER (Protected)
+        val adminPayload: JsObject = Json.obj(
+          "name" -> "Admin User",
+          "email" -> "admin@mail.com",
+          "password" -> "password123",
+          "phone" -> "07000000002",
+          "role" -> "Admin"
+        )
 
+//        Create Admin
+        Await.result(wsClient.url(s"$baseUrl/signUp").post(adminPayload), 5.seconds)
+
+
+//        Login the Admin
+        def loginAndGetUser(wsClient: WSClient, email: String, password: String, port: Int): (String, String) = {
+          val response = Await.result(
+            wsClient
+              .url(s"http://localhost:$port/users/login")
+              .post(Json.obj(
+                "email" -> email,
+                "hashPassword" -> password
+              )),
+            5.seconds
+          )
+
+          println("LOGIN RESPONSE: " + response.body)
+
+          response.status mustBe OK
+
+          val token = (response.json \ "token").as[String]
+          val id = (response.json \ "id").as[String]
+
+          (token, id)
+        }
+
+
+
+        val (adminToken, adminId) =
+          loginAndGetUser(wsClient, "admin@mail.com", "password123", port)
+
+        //  GET USER (Protected)
         val getUserResponse = Await.result(
           wsClient.url(s"$baseUrl/id/$userId")
-            .addHttpHeaders("Authorization" -> s"Bearer $jwt")
+            .addHttpHeaders("Authorization" -> s"Bearer $adminToken")
             .get(),
           10.seconds
         )
 
+
+        println("user by id" + getUserResponse.status)
+        println("user by id" + getUserResponse.body)
         getUserResponse.status mustBe 200
 
         // 4️ UPDATE USER
@@ -117,10 +160,7 @@ class UserE2ESpec extends PlaySpec
 
         val updateResponse = Await.result(
           wsClient.url(s"$baseUrl/update/$userId")
-            .addHttpHeaders(
-              "Content-Type" -> "application/json",
-              "Authorization" -> s"Bearer $jwt"
-            )
+            .addHttpHeaders("Authorization" -> s"Bearer $adminToken")
             .put(updatePayload),
           10.seconds
         )
@@ -131,7 +171,7 @@ class UserE2ESpec extends PlaySpec
 
         val deleteResponse = Await.result(
           wsClient.url(s"$baseUrl/$userId")
-            .addHttpHeaders("Authorization" -> s"Bearer $jwt")
+            .addHttpHeaders("Authorization" -> s"Bearer $adminToken")
             .delete(),
           10.seconds
         )
