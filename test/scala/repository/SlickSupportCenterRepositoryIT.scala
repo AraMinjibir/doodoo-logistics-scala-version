@@ -1,4 +1,4 @@
-package scala.domain.repository
+package scala.repository
 
 import domain.models.UserRole.Admin
 import domain.models.{Comment, ComplaintStatus, User}
@@ -16,9 +16,9 @@ import slick.jdbc.JdbcProfile
 
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext}
-import scala.domain.helpers.{ShipmentTestHelpers, SupportCenterTestHelper}
+import scala.helpers.{ShipmentTestHelpers, SupportCenterTestHelper}
 
- class SlickSupportCenterRepositoryIT extends AnyWordSpec
+class SlickSupportCenterRepositoryIT extends AnyWordSpec
   with Matchers
   with GuiceOneAppPerSuite
   with BeforeAndAfterAll

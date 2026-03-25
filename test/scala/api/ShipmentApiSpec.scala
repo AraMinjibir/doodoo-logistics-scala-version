@@ -1,4 +1,4 @@
-package scala.domain.api
+package scala.api
 
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatestplus.play.PlaySpec
@@ -12,7 +12,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import java.util.UUID
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
-import scala.domain.helpers.ShipmentTestHelpers
+import scala.helpers.ShipmentTestHelpers
 
 class ShipmentApiSpec extends PlaySpec
   with GuiceOneAppPerSuite

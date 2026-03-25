@@ -1,4 +1,4 @@
-package scala.domain.repository
+package scala.repository
 
 import infrastructure.persistence.tables.UserTable
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}

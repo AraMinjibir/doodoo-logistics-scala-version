@@ -1,4 +1,4 @@
-package scala.domain.e2e
+package scala.e2e
 
 import com.dimafeng.testcontainers.{ForAllTestContainer, PostgreSQLContainer}
 import domain.gateways.{MockPaymentGateway, PaymentGateway}
@@ -13,7 +13,7 @@ import play.api.http.Status.{CREATED, NO_CONTENT, OK}
 import java.util.UUID
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
-import scala.domain.helpers.{PaymentTestHelper, ShipmentTestHelpers}
+import scala.helpers.{PaymentTestHelper, ShipmentTestHelpers}
 
 class PaymentE2ESpec
   extends PlaySpec

@@ -1,8 +1,8 @@
 package domain.services.impl
 import controllers.helpers.ResultMapper
 import domain.errors.{DomainError, NotAServiceProvide, ShipmentNotFound, ShipmentNotFoundById, UpdateProofOfDeliveryError, UpdateShipmentStatusError, UserNotFound, UserNotFoundWithId, ValidationError}
-import domain.models.{ProofOfDelivery, Shipment, ShipmentStatus, UserRole}
-import domain.services.ShipmentService
+import domain.models.{ProofOfDelivery, Shipment, ShipmentCreated, ShipmentDelivered, ShipmentStatus, ShipmentStatusChanged, UserRole}
+import domain.services.{EventBus, ShipmentService}
 import repositories.{ShipmentRepository, UserRepository}
 
 import java.time.Instant
@@ -14,7 +14,8 @@ import scala.util.{Failure, Success}
 @Singleton
 class ShipmentServiceImpl @Inject()(
                                      repo: ShipmentRepository,
-                                     userRepository: UserRepository
+                                     userRepository: UserRepository,
+                                     eventBus: EventBus
                                    )(implicit ec: ExecutionContext) extends ShipmentService with ResultMapper {
 
 
@@ -24,7 +25,15 @@ class ShipmentServiceImpl @Inject()(
     repo
       .create(shipment)
       .map{
-          case Success(_)  => Right(shipment)
+          case Success(_)  =>
+            eventBus.publish(
+              ShipmentCreated(
+                shipmentId = shipment.id.toString,
+                trackingNumber = shipment.trackingNumber,
+                senderName = shipment.senderName
+              )
+            )
+            Right(shipment)
           case Failure(ex) => Left(mapInsertException(ex))
         }
   }
@@ -55,7 +64,16 @@ class ShipmentServiceImpl @Inject()(
         .fold(
           err => Future.successful(Left(err)),
           updated => repo.update(updated).map{
-            case Success(_) =>  Right(updated)
+            case Success(_) =>
+              eventBus.publish(
+                ShipmentStatusChanged(
+                  shipmentId = updated.id.toString,
+                  newStatus = status.toString,
+                  senderEmail = updated.senderName,
+                  recipientEmail = updated.recipient.toString
+                )
+              )
+              Right(updated)
             case Failure(err) => Left(UpdateShipmentStatusError(err.getMessage))
           }
         )
@@ -125,6 +143,15 @@ class ShipmentServiceImpl @Inject()(
                   case None =>
                     Left(List(UpdateProofOfDeliveryError("Persistence failure")))
                   case Some(saved) =>
+                    eventBus.publish(
+                      ShipmentDelivered(
+                        shipmentId = saved.id.toString,
+                        trackingNumber = Some(saved.trackingNumber).toString,
+                        senderEmail = saved.senderName
+                      )
+                    )
+
+                    Right(saved)
                     Right(saved)
                 }
             }

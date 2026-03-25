@@ -17,7 +17,7 @@ import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, Future}
-import scala.domain.helpers.SupportCenterTestHelper
+import scala.helpers.SupportCenterTestHelper
 import scala.util.{Failure, Success}
 
 class SupportCenterServiceImplSpec

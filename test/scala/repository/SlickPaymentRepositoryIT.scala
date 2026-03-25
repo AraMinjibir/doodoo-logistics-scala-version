@@ -1,4 +1,4 @@
-package scala.domain.repository
+package scala.repository
 
 import domain.models.PaymentStatus
 import infrastructure.persistence.tables.{PaymentTable, ShipmentsTable, UserTable}
@@ -16,7 +16,7 @@ import slick.jdbc.JdbcProfile
 import java.time.{LocalDate, ZoneId}
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration.DurationInt
-import scala.domain.helpers.{PaymentTestHelper, ShipmentTestHelpers}
+import scala.helpers.{PaymentTestHelper, ShipmentTestHelpers}
 import scala.util.Success
 
 class SlickPaymentRepositoryIT extends AnyWordSpec

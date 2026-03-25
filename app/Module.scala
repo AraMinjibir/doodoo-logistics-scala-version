@@ -1,7 +1,7 @@
 import com.google.inject.AbstractModule
 import domain.gateways.{MockPaymentGateway, PaymentGateway}
-import domain.services.{PaymentService, ShipmentService, SupportCenterService, UserService}
-import domain.services.impl.{PaymentServiceImpl, ShipmentServiceImpl, SupportCenterServiceImpl, UserServiceImpl}
+import domain.services.{EmailService, PaymentService, ShipmentService, SupportCenterService, UserService}
+import domain.services.impl.{EmailServiceImpl, PaymentServiceImpl, ShipmentServiceImpl, SupportCenterServiceImpl, UserServiceImpl}
 import mappers.ShipmentRowMapper
 import repositories.{PaymentRepository, ShipmentRepository, SlickPaymentRepository, SlickShipmentRepository, SlickSupportCenterRepository, SlickUserRepository, SupportCenterRepository, UserRepository}
 
@@ -19,6 +19,8 @@ class Module extends AbstractModule {
     bind(classOf[SupportCenterService]).to(classOf[SupportCenterServiceImpl])
     bind(classOf[PaymentService]).to(classOf[PaymentServiceImpl])
     bind(classOf[UserService]).to(classOf[UserServiceImpl])
+    bind(classOf[EmailService]).to(classOf[EmailServiceImpl])
+
 
 
 

@@ -3,7 +3,7 @@ package scala.domain.services.impl
 import domain.errors.{InvalidCredentials, UserNotFound, UserNotFoundWithId, UserStatusIsNotActive}
 import domain.models.{User, UserStatus}
 import domain.models.UserRole.Admin
-import domain.services.JwtService
+import domain.services.{EventBus, JwtService}
 import domain.services.impl.UserServiceImpl
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{reset, verify, when}
@@ -25,7 +25,8 @@ class UserServiceImplSpec extends AnyWordSpec
 
   val mockRepo: UserRepository = mock[UserRepository]
   val jwt: JwtService = mock[JwtService]
-  val service = new UserServiceImpl(mockRepo, jwt)
+  val eventBus:EventBus = mock[EventBus]
+  val service = new UserServiceImpl(mockRepo, jwt, eventBus)
   val hashedPassword: String = User.hashPasswordValue("doodoooaauiiq1234")
 
   val user: User = User.createUser(

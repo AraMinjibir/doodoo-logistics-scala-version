@@ -15,7 +15,7 @@ import repositories.{PaymentRepository, ShipmentRepository}
 import java.time.LocalDate
 import scala.concurrent.Future
 import scala.concurrent.duration.DurationInt
-import scala.domain.helpers.{PaymentTestHelper, ShipmentTestHelpers}
+import scala.helpers.{PaymentTestHelper, ShipmentTestHelpers}
 import scala.util.Success
 
 class PaymentServiceImplSpec extends AsyncWordSpec

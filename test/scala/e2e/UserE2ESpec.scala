@@ -1,4 +1,4 @@
-package scala.domain.e2e
+package scala.e2e
 
 import com.dimafeng.testcontainers.{ForAllTestContainer, PostgreSQLContainer}
 import org.scalatestplus.play.PlaySpec

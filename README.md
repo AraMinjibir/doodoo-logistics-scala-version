@@ -1,6 +1,6 @@
 # DooDoo Logistics 
 
-**Play Framework • Scala • PostgreSQL • REST  • WebSockets • Event Sourcing**
+**Play Framework • Scala • PostgreSQL • REST  • WebSockets **
 
 DooDoo Logistics is a production-oriented logistics and delivery management backend inspired by industrial-grade systems like DHL, Bolt Logistics, and FedEx. Built as a Modular Monolith, this project demonstrates how to handle complex business rules, strict state transitions, and asynchronous event processing within a maintainable and testable architecture.
 
@@ -120,14 +120,21 @@ and delivery timeline.
 
 Operational Oversight: Maintain visibility over the entire delivery process to ensure service reliability.
 
+• Notification System (Event-Driven, Asynchronous)
+Implemented a lightweight event-driven notification mechanism using in-memory domain events
+Decoupled business logic from notification handling via a centralized EventBus abstraction
+Triggered notifications on key domain events (shipment creation, status changes, user updates)
+Executed notification processing asynchronously to avoid blocking core operations
+Designed extensible architecture to support multiple channels (Email, Push, SMS)
+Prepared the system for future integration with message brokers (e.g., Kafka) without refactoring
+Ensured clean separation of concerns through a dedicated NotificationService layer
+
+
 3. Architecture & Design Patterns
 The system follows Domain-Driven Design (DDD) principles to isolate business logic from infrastructure.
 
 • Persistence Ignorance: Service layers interact with Repository traits, allowing the underlying 
   database (PostgreSQL) to be swapped or mocked for testing.
-
-• Event-Driven Architecture (EDA): Utilizing Kafka to decouple the core logistics engine from the 
-  notification system.
 
 • Type-Safe Domain: Leveraging Scala's sealed traits and Enumeratum to ensure that only valid 
   shipment statuses and roles can exist at compile-time.
@@ -164,8 +171,6 @@ The system follows Domain-Driven Design (DDD) principles to isolate business log
 
 • Persistence: PostgreSQL with Slick (Type-safe SQL DSL).
 
-• Messaging: Apache Kafka for reliable, asynchronous notification delivery.
-
 • Security: BCrypt password hashing and JWT-based authentication.
 
 5. Testing Strategy
@@ -179,17 +184,7 @@ DooDoo Logistics prioritizes correctness through a comprehensive testing pyramid
 • End-to-End (E2E) Tests: Full-flow verification simulating a shipment's journey from initial 
  creation to final delivery, ensuring all layers (API, Service, Repo) work in harmony.
 
-6. Event-Driven Notifications
-To maintain high throughput, notification logic is offloaded to Kafka:
-
-• Produce: When a shipment status changes, a StatusChanged event is published to Kafka.
-
-• Consume: A dedicated Notification Consumer listens for these events.
-
-• Execute: The consumer triggers Email or Push notifications via external providers (e.g., 
-  SendGrid/Firebase).
-
-7. Roadmap & Operational Readiness
+6. Roadmap & Operational Readiness
 
 [x] Core Shipment Engine: Basic creation, tracking, and persistence.
 
@@ -197,19 +192,17 @@ To maintain high throughput, notification logic is offloaded to Kafka:
 
 [x] Support Module: Ticket management and internal auditing.
 
-[ ] Kafka Integration: Implementation of the Event Producer and Notification Consumer.
-
 [ ] Observability: Structured logging (SLF4J) and health check endpoints for production monitoring.
 
 [ ] CI/CD Pipeline: Automated GitHub Actions/GitLab CI for testing and Docker deployment.
 
-8. Running the Project Locally
+7. Running the Project Locally
 Bash
 
 # Clone the repository
 git clone git@gitlab.com:AraMjb/doodoo-logistics.git
 
-# Ensure PostgreSQL and Kafka are running via Docker
+# Ensure PostgreSQL is running via Docker
 docker-compose up -d
 
 # Run the Play application
