@@ -1,7 +1,8 @@
 package scala.domain.services.impl
 
 import domain.gateways.{PaymentGateway, PaymentGatewayResponse, PaymentWebhookEvent}
-import domain.models.{PaymentMethod, PaymentStatus}
+import domain.models.{Payment, PaymentMethod, PaymentStatus, Shipment}
+import domain.services.EventBus
 import domain.services.impl.PaymentServiceImpl
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verify, when}
@@ -25,17 +26,18 @@ class PaymentServiceImplSpec extends AsyncWordSpec
   with PaymentTestHelper
   with ShipmentTestHelpers{
 
-  val paymentRepository = mock[PaymentRepository]
-  val shipmentRepository = mock[ShipmentRepository]
-  val gateway = mock[PaymentGateway]
+  val paymentRepository: PaymentRepository = mock[PaymentRepository]
+  val shipmentRepository: ShipmentRepository = mock[ShipmentRepository]
+  val eventBus: EventBus = mock[EventBus]
+  val gateway: PaymentGateway = mock[PaymentGateway]
 
   val service =
     new PaymentServiceImpl(paymentRepository: PaymentRepository,
       shipmentRepository:ShipmentRepository,
-      gateway: PaymentGateway)
+      gateway: PaymentGateway, eventBus)
 
-  val payment = samplePayment
-  val shipment = createTestShipment()
+  val payment: Payment = samplePayment
+  val shipment: Shipment = createTestShipment()
 
 
   "PaymentServiceImpl" should{

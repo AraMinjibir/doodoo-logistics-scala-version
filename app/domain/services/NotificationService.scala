@@ -1,7 +1,7 @@
 package domain.services
 
 import com.google.inject.{Inject, Singleton}
-import domain.models.{ShipmentAssigned, ShipmentCreated, ShipmentDelivered, ShipmentStatusChanged, UserAccountUpdated, UserCreated}
+import domain.models.{PaymentFailed, PaymentSucceeded, ShipmentAssigned, ShipmentCreated, ShipmentDelivered, ShipmentStatusChanged, UserAccountUpdated, UserCreated}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -89,4 +89,45 @@ class NotificationService @Inject()(
        """.stripMargin
     )
   }
+
+  def sendPaymentSuccess(event: PaymentSucceeded): Future[Unit] =
+    emailService.send(
+      to = event.email,
+      subject = "Payment Successful",
+      body =
+        s"""
+           |Your payment was successful.
+           |
+           |Reference: ${event.reference}
+           |Amount: ${event.amount}
+       """.stripMargin
+    )
+
+  def sendPaymentFailure(event: PaymentFailed): Future[Unit] =
+    for {
+      _ <- emailService.send(
+        to = event.email,
+        subject = "Payment Failed",
+        body =
+          s"""
+             |Your payment failed.
+             |
+             |Reference: ${event.reference}
+             |Reason: ${event.reason}
+         """.stripMargin
+      )
+
+      // notify support team
+      _ <- emailService.send(
+        to = "support@doodoologistics.com",
+        subject = "Payment Issue Requires Intervention",
+        body =
+          s"""
+             |Payment failed and requires attention.
+             |
+             |Reference: ${event.reference}
+             |Reason: ${event.reason}
+         """.stripMargin
+      )
+    } yield ()
 }

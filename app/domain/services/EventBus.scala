@@ -1,7 +1,7 @@
 package domain.services
 
 import com.google.inject.{Inject, Singleton}
-import domain.models.{DomainEvent, ShipmentAssigned, ShipmentCreated, ShipmentDelivered, ShipmentStatusChanged, UserAccountUpdated, UserCreated}
+import domain.models.{DomainEvent, PaymentFailed, PaymentSucceeded, ShipmentAssigned, ShipmentCreated, ShipmentDelivered, ShipmentStatusChanged, UserAccountUpdated, UserCreated}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -33,5 +33,11 @@ class EventBus @Inject()(
 
     case e: ShipmentDelivered =>
       notificationService.sendShipmentDelivered(e)
+
+    case e: PaymentSucceeded =>
+      notificationService.sendPaymentSuccess(e)
+
+    case e: PaymentFailed =>
+      notificationService.sendPaymentFailure(e)
   }
 }

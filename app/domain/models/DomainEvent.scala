@@ -39,3 +39,15 @@ case class ShipmentDelivered(
                               trackingNumber: String,
                               senderEmail: String
                             ) extends DomainEvent
+
+case class PaymentSucceeded(
+                             reference: String,
+                             email: String,
+                             amount: BigDecimal
+                           ) extends DomainEvent
+
+case class PaymentFailed(
+                          reference: String,
+                          email: String,
+                          reason: String
+                        ) extends DomainEvent
