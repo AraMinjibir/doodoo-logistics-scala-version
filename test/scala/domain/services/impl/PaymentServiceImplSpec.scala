@@ -6,25 +6,25 @@ import domain.services.EventBus
 import domain.services.impl.PaymentServiceImpl
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verify, when}
-import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AsyncWordSpec
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import repositories.{PaymentRepository, ShipmentRepository}
 
 import java.time.LocalDate
-import scala.concurrent.Future
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.{ExecutionContext, Future}
 import scala.helpers.{PaymentTestHelper, ShipmentTestHelpers}
 import scala.util.Success
 
-class PaymentServiceImplSpec extends AsyncWordSpec
+class PaymentServiceImplSpec extends AnyWordSpec
   with Matchers
   with MockitoSugar
-  with ScalaFutures
   with PaymentTestHelper
   with ShipmentTestHelpers{
+
+  implicit val ec: ExecutionContext = ExecutionContext.global
+
 
   val paymentRepository: PaymentRepository = mock[PaymentRepository]
   val shipmentRepository: ShipmentRepository = mock[ShipmentRepository]

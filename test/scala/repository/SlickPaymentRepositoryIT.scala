@@ -1,21 +1,22 @@
 package scala.repository
 
-import domain.models.PaymentStatus
+import domain.models.{Payment, PaymentStatus, Shipment, User}
 import infrastructure.persistence.tables.{PaymentTable, ShipmentsTable, UserTable}
+import org.playframework.cachecontrol.HttpDate.zone
 import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.matchers.should.Matchers.contain.allOf
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Application
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.inject.guice.GuiceApplicationBuilder
 import repositories.{PaymentRepository, ShipmentRepository, UserRepository}
 import slick.jdbc.JdbcProfile
 
-import java.time.{LocalDate, ZoneId}
-import scala.concurrent.{Await, ExecutionContext}
+import java.time.LocalDate
 import scala.concurrent.duration.DurationInt
+import scala.concurrent.{Await, ExecutionContext}
 import scala.helpers.{PaymentTestHelper, ShipmentTestHelpers}
 import scala.util.Success
 
@@ -29,7 +30,7 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
 
   implicit val ec: ExecutionContext = ExecutionContext.global
 
-  override def fakeApplication() =
+  override def fakeApplication(): Application =
     GuiceApplicationBuilder()
       .configure(
         "slick.dbs.default.profile" -> "slick.jdbc.H2Profile$",
@@ -39,9 +40,9 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
         "slick.dbs.default.db.password" -> ""
       ).build()
 
-  lazy val repo     = app.injector.instanceOf[PaymentRepository]
-  lazy val shipmentRepo     = app.injector.instanceOf[ShipmentRepository]
-  lazy val userRepo = app.injector.instanceOf[UserRepository]
+  lazy val repo: PaymentRepository = app.injector.instanceOf[PaymentRepository]
+  lazy val shipmentRepo: ShipmentRepository = app.injector.instanceOf[ShipmentRepository]
+  lazy val userRepo: UserRepository = app.injector.instanceOf[UserRepository]
   lazy val dbConfig = app.injector.instanceOf[DatabaseConfigProvider].get[JdbcProfile]
   import dbConfig.profile.api._
 
@@ -69,9 +70,9 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
         )), 5.seconds)
   }
 
-  val user = newUser
-  val shipment = createTestShipment()
-  val payment =  newPayment(shipmentId = shipment.id,customerId = user.id)
+  val user: User = newUser
+  val shipment: Shipment = createTestShipment()
+  val payment: Payment =  newPayment(shipmentId = shipment.id,customerId = user.id)
 
 
 
@@ -171,6 +172,10 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
 
       val testDate = LocalDate.of(2026, 3, 4)
 
+      val payment = newPayment(user.id, shipment.id).copy(
+        paidAt = testDate.atStartOfDay(zone).toInstant
+      )
+
       Await.result(userRepo.createUser(user), 5.second)
 
       Await.result(shipmentRepo.create(shipment), 5.second)
@@ -184,7 +189,9 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
     "Return the sum of weekly payment inserted" in {
 
       val startOfAWeek = LocalDate.of(2026, 3, 4)
-
+      val payment = newPayment(user.id, shipment.id).copy(
+        paidAt = startOfAWeek.atStartOfDay(zone).toInstant
+      )
       Await.result(userRepo.createUser(user), 5.second)
       Await.result(shipmentRepo.create(shipment), 5.second)
       Await.result(repo.savePayment(payment), 5.second)
@@ -198,14 +205,13 @@ class SlickPaymentRepositoryIT extends AnyWordSpec
 
       val year = 2026
       val month = 3
-      val zone = ZoneId.systemDefault()
 
-      val aprilDate = LocalDate.of(year, month, 15)
-      val aprilInstant = aprilDate.atStartOfDay(zone).toInstant
-
-      val samplePayment = payment.copy(
-        amount = BigDecimal(10000),
-        paidAt = aprilInstant
+      val payment = newPayment(user.id, shipment.id).copy(
+        paidAt =
+          LocalDate
+            .of(year, month, 1)
+            .atStartOfDay(zone)
+            .toInstant
       )
 
       Await.result(userRepo.createUser(user), 5.second)
