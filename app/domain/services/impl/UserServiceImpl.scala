@@ -43,7 +43,7 @@ class UserServiceImpl @Inject()(
               case Success(_) =>
                 eventBus.publish(
                   UserCreated(
-                    username = newUser.name,
+                    username = newUser.email,
                     role = newUser.role,
                     status = newUser.status
                   )
@@ -92,7 +92,7 @@ class UserServiceImpl @Inject()(
           phone = user.phone,
           role = user.role,
           status = user.status,
-          createdAt = user.createdAt,
+          createdAt = existingUser.createdAt,
           updatedAt = Some(Instant.now())
         )
         userRepository.updateUser(updatedUser).map{

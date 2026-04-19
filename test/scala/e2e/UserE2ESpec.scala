@@ -19,7 +19,6 @@ class UserE2ESpec extends PlaySpec
   override val container: PostgreSQLContainer = PostgreSQLContainer("postgres:16-alpine")
 
   override def fakeApplication(): Application = {
-    // These values are generated dynamically by Docker
     new GuiceApplicationBuilder()
       .configure(
         "slick.dbs.default.profile" -> "slick.jdbc.PostgresProfile$",
@@ -33,7 +32,7 @@ class UserE2ESpec extends PlaySpec
         //        connection timeout for failing
         "slick.dbs.default.db.numThreads" -> "5",
         "slick.dbs.default.db.maxConnections" -> "5",
-        "slick.dbs.default.db.connectionTimeout" -> "5000", // 5 seconds
+        "slick.dbs.default.db.connectionTimeout" -> "5000",
         "slick.dbs.default.db.registerMbeans" -> "true",
 
         "play.http.errorHandler" -> "play.api.http.DefaultHttpErrorHandler",
@@ -73,7 +72,6 @@ class UserE2ESpec extends PlaySpec
 
         val signUpJson: JsValue = signUpResponse.json
         val userId = (signUpJson \ "id").as[String]
-        val token = (signUpJson \ "token").as[String]
 
         // 2 LOGIN
 
@@ -132,7 +130,7 @@ class UserE2ESpec extends PlaySpec
 
 
 
-        val (adminToken, adminId) =
+        val (adminToken, _) =
           loginAndGetUser(wsClient, "admin@mail.com", "password123", port)
 
         //  GET USER (Protected)
