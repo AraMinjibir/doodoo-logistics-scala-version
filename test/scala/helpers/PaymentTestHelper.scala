@@ -1,4 +1,4 @@
-package scala.domain.helpers
+package scala.helpers
 
 import domain.models.UserRole.Admin
 import domain.models.{Payment, PaymentMethod, PaymentStatus, User}

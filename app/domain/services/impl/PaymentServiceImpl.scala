@@ -3,8 +3,8 @@ package domain.services.impl
 import com.google.inject.{Inject, Singleton}
 import domain.errors.{DomainError, DuplicateError}
 import domain.gateways.{PaymentGateway, PaymentGatewayResponse, PaymentWebhookEvent}
-import domain.models.{Payment, PaymentMethod, PaymentStatus}
-import domain.services.PaymentService
+import domain.models.{Payment, PaymentFailed, PaymentMethod, PaymentStatus, PaymentSucceeded}
+import domain.services.{EventBus, PaymentService}
 import repositories.{PaymentRepository, ShipmentRepository}
 
 import java.time.LocalDate
@@ -15,7 +15,8 @@ import scala.util.Success
 class PaymentServiceImpl @Inject()(
                                     paymentRepository: PaymentRepository,
                                     shipmentRepository:ShipmentRepository,
-                                    gateway: PaymentGateway)
+                                    gateway: PaymentGateway,
+                                    eventBus: EventBus)
                                   (implicit ec: ExecutionContext)
                                   extends PaymentService {
 
@@ -95,6 +96,36 @@ class PaymentServiceImpl @Inject()(
 
           val updatedPayment =
             payment.copy(status = newStatus)
+
+          paymentRepository
+            .updatePayment(updatedPayment)
+            .map { _ =>
+
+              newStatus match {
+
+                case PaymentStatus.Successful =>
+                  eventBus.publish(
+                    PaymentSucceeded(
+                      reference = updatedPayment.referenceNumber,
+                      email = updatedPayment.customerId.toString,
+                      amount = updatedPayment.amount
+                    )
+                  )
+
+                case PaymentStatus.Failed =>
+                  eventBus.publish(
+                    PaymentFailed(
+                      reference = updatedPayment.referenceNumber,
+                      email = updatedPayment.customerId.toString,
+                      reason = event.status
+                    )
+                  )
+
+                case _ => ()
+              }
+
+              Right(updatedPayment)
+            }
 
           paymentRepository
             .updatePayment(updatedPayment)

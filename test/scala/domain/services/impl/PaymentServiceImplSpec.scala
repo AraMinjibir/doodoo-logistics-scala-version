@@ -1,41 +1,43 @@
 package scala.domain.services.impl
 
 import domain.gateways.{PaymentGateway, PaymentGatewayResponse, PaymentWebhookEvent}
-import domain.models.{PaymentMethod, PaymentStatus}
+import domain.models.{Payment, PaymentMethod, PaymentStatus, Shipment}
+import domain.services.EventBus
 import domain.services.impl.PaymentServiceImpl
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{verify, when}
-import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AsyncWordSpec
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import repositories.{PaymentRepository, ShipmentRepository}
 
 import java.time.LocalDate
-import scala.concurrent.Future
-import scala.concurrent.duration.DurationInt
-import scala.domain.helpers.{PaymentTestHelper, ShipmentTestHelpers}
+import scala.concurrent.{ExecutionContext, Future}
+import scala.helpers.{PaymentTestHelper, ShipmentTestHelpers}
 import scala.util.Success
 
-class PaymentServiceImplSpec extends AsyncWordSpec
+class PaymentServiceImplSpec extends AnyWordSpec
   with Matchers
   with MockitoSugar
-  with ScalaFutures
   with PaymentTestHelper
   with ShipmentTestHelpers{
 
-  val paymentRepository = mock[PaymentRepository]
-  val shipmentRepository = mock[ShipmentRepository]
-  val gateway = mock[PaymentGateway]
+  implicit val ec: ExecutionContext = ExecutionContext.global
+
+
+  val paymentRepository: PaymentRepository = mock[PaymentRepository]
+  val shipmentRepository: ShipmentRepository = mock[ShipmentRepository]
+  val eventBus: EventBus = mock[EventBus]
+  val gateway: PaymentGateway = mock[PaymentGateway]
 
   val service =
     new PaymentServiceImpl(paymentRepository: PaymentRepository,
       shipmentRepository:ShipmentRepository,
-      gateway: PaymentGateway)
+      gateway: PaymentGateway, eventBus)
 
-  val payment = samplePayment
-  val shipment = createTestShipment()
+  val payment: Payment = samplePayment
+  val shipment: Shipment = createTestShipment()
 
 
   "PaymentServiceImpl" should{

@@ -1,4 +1,4 @@
-package scala.domain.helpers
+package scala.helpers
 
 import domain.errors.DomainError
 import domain.models.{Address, Dimensions, PackageDetails, ProofOfDelivery, Recipient, Shipment, ShipmentStatus, User, UserRole, UserStatus}

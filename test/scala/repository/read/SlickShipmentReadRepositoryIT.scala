@@ -1,4 +1,4 @@
-package scala.domain.repository.read
+package scala.repository.read
 
 import domain.models.ShipmentStatus
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
@@ -12,10 +12,10 @@ import infrastructure.persistence.tables.ShipmentsTable
 import repositories.SlickShipmentRepository
 
 import java.util.UUID
-import scala.domain.helpers.ShipmentTestHelpers
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
+import scala.helpers.ShipmentTestHelpers
 
 class SlickShipmentReadRepositoryIT extends AnyWordSpec
   with Matchers

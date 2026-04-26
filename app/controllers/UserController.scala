@@ -36,9 +36,9 @@ class UserController @Inject()(
             val user = SignUpDto.toUserDomain(dto)
 
             userService.registerUser(user).flatMap {
-              case Left(UserAlreadyExists(email)) =>
+              case Left(e @ UserAlreadyExists(_)) =>
                 Future.successful(
-                  Conflict(Json.obj("message" -> s"User with email $email already exists"))
+                  Conflict(Json.obj("message" -> e.message))
                 )
 
               case Right(createdUser) =>
@@ -71,7 +71,7 @@ class UserController @Inject()(
               case Some(user) =>
                 Ok(Json.toJson(UserResponseDto.toUserResponseDto(user, token)))
               case None =>
-                NotFound(Json.obj("error" -> s"User not found after login"))
+                NotFound(Json.obj("error" -> s"User not found"))
             }.recover{
               case ex =>
                 handleException(ex)

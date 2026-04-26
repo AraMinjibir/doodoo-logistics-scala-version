@@ -1,4 +1,4 @@
-package scala.domain.e2e
+package scala.e2e
 
 import com.dimafeng.testcontainers.{ForAllTestContainer, PostgreSQLContainer}
 import domain.gateways.{MockPaymentGateway, PaymentGateway}
@@ -13,7 +13,7 @@ import play.api.http.Status.{CREATED, NO_CONTENT, OK}
 import java.util.UUID
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
-import scala.domain.helpers.{PaymentTestHelper, ShipmentTestHelpers}
+import scala.helpers.{PaymentTestHelper, ShipmentTestHelpers}
 
 class PaymentE2ESpec
   extends PlaySpec
@@ -109,8 +109,6 @@ class PaymentE2ESpec
       shipmentResponse.status mustBe CREATED
       val shipmentId = (shipmentResponse.json \ "id").as[String]
 
-//      val customerId = UUID.randomUUID()
-
       val createPayload = Json.obj(
         "customerId" -> senderId,
         "shipmentId" -> shipmentId,
@@ -126,18 +124,8 @@ class PaymentE2ESpec
         5.seconds
       )
 
-
-
       createResponse.status mustBe CREATED
       val reference = (createResponse.json \ "referenceNumber").as[String]
-
-      val debugFetch = Await.result(
-        wsClient.url(s"$baseUrl/$reference")
-          .addHttpHeaders("Authorization" -> s"Bearer $agentToken")
-          .get(),
-        5.seconds
-      )
-
 
       // 2. GET PAYMENT BY REF
       val getResponse = Await.result(
@@ -150,7 +138,7 @@ class PaymentE2ESpec
       getResponse.status mustBe OK
       (getResponse.json \ "status").as[String] mustBe "Pending"
 
-      // 3. WEBHOOK UPDATE (Mock will succeed)
+      // 3. WEBHOOK UPDATE
       val webhookPayload = Json.obj(
         "event" -> "charge.success",
         "data" -> Json.obj("reference" -> reference)

@@ -1,4 +1,4 @@
-package scala.domain.helpers
+package scala.helpers
 
 import domain.models.{Complaint, ComplaintStatus}
 import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
