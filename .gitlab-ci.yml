@@ -5,7 +5,7 @@ stages:
 variables:
   SBT_OPTS: "-Xms512M -Xmx2G"
 
-image: sbtscala/scala-sbt:eclipse-temurin-17.0.10_7_1.10.1_3.3.3
+image: sbtscala/scala-sbt:latest
 
 build:
   stage: build
