@@ -16,7 +16,7 @@ import domain.models.{User, UserRole, UserStatus}
 import domain.models.UserRole.{Admin, Recipient}
 import domain.models.UserStatus.Suspended
 import play.api.Application
-import slick.dbio.DBIO
+import infrastructure.tables.{ShipmentsTable, SupportCenterTable}
 
 class SlickUserRepositoryIT
   extends AnyWordSpec
