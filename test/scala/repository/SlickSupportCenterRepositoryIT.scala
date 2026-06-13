@@ -13,7 +13,6 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.inject.guice.GuiceApplicationBuilder
 import slick.jdbc.JdbcProfile
-import slick.dbio.DBIO
 import play.api.db.slick.DatabaseConfigProvider
 
 import scala.concurrent.duration.DurationInt
