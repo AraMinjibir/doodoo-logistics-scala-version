@@ -1,10 +1,75 @@
-# Routes
-# This file defines all application routes (Higher priority routes first)
-# https://www.playframework.com/documentation/latest/ScalaRouting
-# ~~~~
+# --- Shipment Module ---
 
-# An example controller showing a sample home page
-GET     /                           controllers.HomeController.index()
+# Create a new shipment
+POST    /shipments                         controllers.ShipmentController.createShipment
 
-# Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+# Get all shipments
+GET     /shipments                         controllers.ShipmentController.getAllShipments(page: Int ?= 1, pageSize: Int ?= 10)
+
+# Get shipments by status (Uses the PathBindable)
+GET     /shipments/status/:shipmentStatus  controllers.ShipmentController.getShipmentByStatus(shipmentStatus: domain.models.ShipmentStatus)
+
+# Get shipment by Tracking Number
+GET     /shipments/tracking/:trackingNumber     controllers.ShipmentController.getShipmentByTrackingNumber(trackingNumber: String)
+
+# Get shipment by UUID
+GET     /shipments/:shipmentId             controllers.ShipmentController.getShipmentById(shipmentId: java.util.UUID)
+
+# Update full shipment details
+PUT     /shipments/:shipmentId             controllers.ShipmentController.updateShipment(shipmentId: java.util.UUID)
+
+# Update only the status
+PATCH   /shipments/tracking/:trackingNumber/status   controllers.ShipmentController.updateShipmentStatus(trackingNumber: String)
+
+# Delete a shipment
+DELETE  /shipments/:shipmentId             controllers.ShipmentController.deleteShipment(shipmentId: java.util.UUID)
+
+#Upload proof of delivery
+POST /shipments/tracking/:trackingNumber/proof-of-delivery      controllers.ShipmentController.uploadProofOfDelivery(trackingNumber: String)
+
+#Assign Service provider
+PATCH /shipments/:shipmentId/assign/:serviceProviderId         controllers.ShipmentController.assignServiceProvider(shipmentId: java.util.UUID, serviceProviderId:java.util.UUID)
+GET /shipments/assigned                                        controllers.ShipmentController.assignedShipments
+
+# Create complaint
+POST    /complaints                               controllers.SupportCenterController.sendComplaint
+
+# Get complaints
+GET     /complaints                               controllers.SupportCenterController.getAllComplaint
+GET     /complaints/:complaintId                  controllers.SupportCenterController.getComplaintById(complaintId: java.util.UUID)
+GET     /complaints/status/:status                controllers.SupportCenterController.getComplaintByStatus(status: domain.models.ComplaintStatus)
+
+# State transitions
+PATCH   /complaints/:complaintId/in-progress        controllers.SupportCenterController.markComplaintAsInProgress(complaintId: java.util.UUID)
+PATCH   /complaints/:complaintId/resolve/:agentId   controllers.SupportCenterController.markComplaintAsResolved(complaintId: java.util.UUID, agentId: java.util.UUID)
+
+POST /complaints/:complaintId/comments              controllers.SupportCenterController.addComment(complaintId: java.util.UUID)
+
+#Payment Management
+
+POST   /payments/makePayment         controllers.PaymentController.makePayment(callbackUrl: String)
+POST   /webhooks/payments            controllers.PaymentController.handleWebhook
+
+GET         /payments/:ref                controllers.PaymentController.getPaymentByReference(ref: String)
+GET         /payments/status/:status        controllers.PaymentController.getPaymentByStatus(status:domain.models.PaymentStatus)
+GET         /payments/method/:method        controllers.PaymentController.getPaymentByMethod(method: domain.models.PaymentMethod)
+GET         /payments                       controllers.PaymentController.getAllPayments
+DELETE      /payments/:ref                controllers.PaymentController.deletePayment(ref: String)
+
+GET   /payments/revenue/daily     controllers.PaymentController.getDailyRevenue(date: String)
+GET   /payments/revenue/weekly    controllers.PaymentController.getWeeklyRevenue(date: String)
+GET   /payments/revenue/monthly   controllers.PaymentController.getMonthlyRevenue(year: Int, month: Int)
+
+# User Management
+POST    /users/signUp                  controllers.UserController.signUp
+POST    /users/login                   controllers.UserController.login
+
+GET     /users                         controllers.UserController.listAllUsers
+GET     /users/id/:id                   controllers.UserController.getUserById(id:java.util.UUID)
+GET     /users/role/:role               controllers.UserController.getUserByRole(role: domain.models.UserRole)
+GET     /users/status/:status           controllers.UserController.getUserByStatus(status: domain.models.UserStatus)
+GET     /users/username/:username       controllers.UserController.getUserByUsername(username: String)
+
+PUT     /users/update/:id               controllers.UserController.updateUser(id:java.util.UUID)
+PATCH   /users/:id/status/:status              controllers.UserController.updateStatus(id:java.util.UUID, status: domain.models.UserStatus)
+DELETE  /users/:id                      controllers.UserController.deleteUser(id:java.util.UUID)

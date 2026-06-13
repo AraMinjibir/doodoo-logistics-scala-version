@@ -1,389 +1,218 @@
-# DooDoo Logistics — Distributed Shipment Tracking Platform
+# DooDoo Logistics 
 
-**Pekko Cluster • Kafka • Play Framework • WebSockets • Event Sourcing**
+**Play Framework • Scala • PostgreSQL • REST  • WebSockets • Event Sourcing**
 
-DooDoo Logistics is a distributed logistics and delivery management platform inspired by real-world systems such as UPS, 
-DHL, Bolt Logistics, Doordash, and Glovo. It demonstrates how modern companies build scalable and fault-tolerant delivery
-infrastructure using distributed systems, event-driven architectures, real-time messaging, and resilient stateful services.
+DooDoo Logistics is a production-oriented logistics and delivery management backend inspired by industrial-grade systems like DHL, Bolt Logistics, and FedEx. Built as a Modular Monolith, this project demonstrates how to handle complex business rules, strict state transitions, and asynchronous event processing within a maintainable and testable architecture.
 
-This project is designed as a portfolio-grade showcase of large-scale engineering skills for backend, 
-distributed systems, data engineering, and full-stack roles.
+The project focuses on building, testing, and hardening a real backend system using industry-standard
+ Scala and Play Framework practices before introducing any unnecessary complexity.
+
+Its primary goal is to demonstrate how a typical logistics system is designed, implemented, tested, and
+ prepared for production in a realistic, non-distributed environment, 
+reflecting how most systems are actually built and deployed.
 
 **1. Problem Statement**
 
-Modern logistics platforms must handle:
+Logistics platforms must maintain 100% data consistency and operational transparency. DooDoo Logistics addresses these challenges through:
 
-Real-time tracking of thousands of active shipments
+Deterministic Lifecycle Management: Preventing illegal state jumps (e.g., jumping from Created to Delivered without being In Transit).
 
-Multi-stage delivery pipelines across cities/regions
+Role-Based Access Control (RBAC): Defining clear boundaries between Customers, Service Providers, Support Agents, and Admins.
 
-Consistency guarantees across distributed environments
+Auditability: A permanent, timestamped history of every shipment status change.
 
-Event-driven state transitions for pickup, transit, and delivery
+Event-Driven Notifications: Ensuring stakeholders are updated in real-time without blocking the core API performance.
 
-Live GPS updates from mobile devices
+2. Core Capabilities by Role
+The system enforces the Principle of Least Privilege (PoLP) across four distinct roles:
 
-System resilience to failures, retries, and network partitions
+Customer / Sender
+• Shipment Management: Create shipments with full input validation and receive unique tracking 
+  numbers.
 
-High-throughput ingestion of events
+• Visibility: Real-time tracking and access to the complete lifecycle history of their packages.
 
-Monitoring and support operations for customers
+Recipient (The Consignee)
+• Tracking: Track all incoming packages using the tracking number received from the sender via the email address provided.
 
-Full audit trails for compliance and analytics
+• Delivery Confirmation: Provide an official Proof of Delivery (PoD) data once a shipment reaches the 
+  final state(shipment status = delivered).
 
-DooDoo Logistics solves these challenges using:
+Service Provider (Courier)
+• Logistics Progression: Responsible for moving shipments through active states (Accept, In 
+  Transit, Delivered).
 
-**Pekko Cluster Sharding for distributed stateful services**
+• Metadata Entry: Submitting delivery notes and proof-of-delivery timestamps.
 
-**Kafka for decoupled event processing**
+Support Agent (Operational Integrity)
 
-**Event Sourcing for fault tolerance and auditability**
+• Shipment Lookup & Inquiry Resolution
+Provides support agents with the ability to search and filter shipments by tracking number and by status in order to quickly resolve
+customer inquiries.
 
-**Pekko Streams for GPS ingestion and real-time streaming**
+• Complaint Management
+Enables users to submit complaints linked to specific shipments, and allows agents to review, track, and resolve these cases
+through a simple status-based workflow.
 
-**Play Framework for scalable API endpoints**
+• Shipment Attention Monitoring
+Identifies shipments that have not progressed within expected timeframes and flags them for manual review by support agents.
 
-WebSockets for live dashboards
+Payment Management (Financial Operations)
 
-**2. Core Features**
-   Distributed Shipment Engine
+• Payment Processing
+Enables customers to make payments for shipments using supported payment methods, ensuring each transaction 
+is securely recorded and linked to the corresponding shipment.
 
-ShipmentActor (sharded): Each shipment is an independent event-sourced entity
+• Payment Status Tracking
+Tracks the lifecycle of each payment from pending to successful, failed, or refunded, allowing both customers and 
+support agents to verify payment completion.
 
-Automatic cluster rebalancing on node join/leave
+• Notifications & Alerts
+Automatically notifies customers of successful or failed payments and informs support agents of any payment issues that 
+require intervention.
 
-Horizontal scalability and fault tolerance
+• Integration with Shipment Flow
+Ensures shipment progression aligns with payment confirmation, preventing dispatch of unpaid shipments and supporting 
+accurate financial reconciliation.
 
-Durable state recovery through event logs
+•Revenue Reporting Capabilities
+Implemented time-based revenue aggregation (daily, weekly, monthly)
+Designed half-open interval date filtering ([start, end)) for accurate financial boundaries
+Leveraged database-level aggregation (SUM) via Slick for performance efficiency
+Ensured monetary correctness using BigDecimal
+Centralized revenue logic using a reusable revenueBetween abstraction.
 
-Event-Driven Delivery Pipeline (Kafka)
+Administrative Functionality
 
-Kafka topics include:
+The system provides an administrative interface that allows platform administrators to manage users and monitor shipment 
+activities across the logistics network. These capabilities ensure operational oversight, user accountability
+and timely response to delivery issues.
 
-shipment-created
+1. User Account Management
 
-pickup-started
+Administrators can manage accounts for all platform participants, including Senders, Recipients
+and Service Providers.
 
-in-transit
+Key capabilities include:
 
-delivered
+Create User Accounts: Register new Senders, Recipients, or Service Providers on the platform.
 
-shipment-exception
+Edit User Profiles: Update user information such as name, contact details, or assigned role.
 
-support-ticket-created
+Manage Roles and Permissions: Assign appropriate roles to users based on their responsibilities within the system.
 
-support-ticket-resolved
+Deactivate or Remove Accounts: Disable or delete accounts that are no longer active or violate platform policies.
 
-All domain changes flow through Kafka, enabling:
+This functionality ensures that administrators maintain control over platform access while supporting smooth onboarding
+and management of logistics participants.
 
-Loose coupling
+2. Shipment Monitoring
 
-Real-time analytics
+Administrators can monitor the status of all shipments processed through the platform in real time.
 
-Replayable pipelines
+Key capabilities include:
 
-Multi-subscriber architecture
+Track Shipment Status: View the current state of each shipment, including stages such as created, in transit, delivered, 
+or cancelled.
 
-GPS Tracking via Pekko Streams
+Access Shipment Details: Inspect shipment information, including sender, recipient, assigned service provider
+and delivery timeline.
 
-Service provider mobile apps push GPS updates
+Operational Oversight: Maintain visibility over the entire delivery process to ensure service reliability.
 
-Stream processing reduces incoming data
+3. Architecture & Design Patterns
+The system follows Domain-Driven Design (DDD) principles to isolate business logic from infrastructure.
 
-Real-time location updates fed to WebSockets
+• Persistence Ignorance: Service layers interact with Repository traits, allowing the underlying 
+  database (PostgreSQL) to be swapped or mocked for testing.
 
-Position history stored via event sourcing
+• Event-Driven Architecture (EDA): Utilizing Kafka to decouple the core logistics engine from the 
+  notification system.
 
-Play Framework REST API
+• Type-Safe Domain: Leveraging Scala's sealed traits and Enumeratum to ensure that only valid 
+  shipment statuses and roles can exist at compile-time.
 
-**Endpoints include:**
+```+------------------------+
+|   API Clients          |
+|  (Web / Mobile / Admin)|
++-----------+------------+
+            |
+         REST / WS
+            |
++-----------+------------+
+| Play Framework API     |
+| Controllers            |
++-----------+------------+
+            |
+      Service Layer
+            |
++-----------+------------+
+| Domain Logic           |
+| Validation             |
+| Business Rules         |
++-----------+------------+
+            |
+      Repository Layer
+            |
++-----------+------------+
+| PostgreSQL Database    |
++------------------------+```
 
-Sender
+4. Technical Stack
 
-Create shipment
+• Backend: Scala, Play Framework (Asynchronous/Non-blocking I/O).
 
-Retrieve current shipment state
+• Persistence: PostgreSQL with Slick (Type-safe SQL DSL).
 
-Query historical events
+• Messaging: Apache Kafka for reliable, asynchronous notification delivery.
 
-Service Provider
+• Security: BCrypt password hashing and JWT-based authentication.
 
-Accept pickup
+5. Testing Strategy
+DooDoo Logistics prioritizes correctness through a comprehensive testing pyramid:
 
-Update delivery stage
+• Service-Level Unit Tests: 100% coverage of business rules and state transition logic using 
+  Mockito.
 
-Push GPS coordinates
+• Integration Tests: Verifying Repository-to-Database mapping and SQL query correctness.
 
-Administrator
+• End-to-End (E2E) Tests: Full-flow verification simulating a shipment's journey from initial 
+ creation to final delivery, ensuring all layers (API, Service, Repo) work in harmony.
 
-Query all shipments (materialized projections)
+6. Event-Driven Notifications
+To maintain high throughput, notification logic is offloaded to Kafka:
 
-Filter shipments by status/state/area
+• Produce: When a shipment status changes, a StatusChanged event is published to Kafka.
 
-View event timeline for any shipment
+• Consume: A dedicated Notification Consumer listens for these events.
 
-Support Agent (Newly Added)
+• Execute: The consumer triggers Email or Push notifications via external providers (e.g., 
+  SendGrid/Firebase).
 
-Create customer support tickets
+7. Roadmap & Operational Readiness
 
-Attach inquiries/questions to a shipment
+[x] Core Shipment Engine: Basic creation, tracking, and persistence.
 
-Resolve tickets
+[x] RBAC Implementation: Secure boundaries for all user roles.
 
-View ticket history (event-sourced)
+[x] Support Module: Ticket management and internal auditing.
 
-Subscribe to support-ticket events via WebSockets
+[ ] Kafka Integration: Implementation of the Event Producer and Notification Consumer.
 
-Real-Time WebSocket Notifications
+[ ] Observability: Structured logging (SLF4J) and health check endpoints for production monitoring.
 
-Live shipment map feed
+[ ] CI/CD Pipeline: Automated GitHub Actions/GitLab CI for testing and Docker deployment.
 
-Stage transitions: Pickup → In Transit → Delivered
+8. Running the Project Locally
+Bash
 
-Exception alerts
+# Clone the repository
+git clone git@gitlab.com:AraMjb/doodoo-logistics.git
 
-Support ticket updates
+# Ensure PostgreSQL and Kafka are running via Docker
+docker-compose up -d
 
-Admin dashboard data refresh
+# Run the Play application
+sbt run
 
-Event-Sourced History
 
-Every single event is persisted:
-
-Commands
-
-State transitions
-
-Location updates
-
-Support agent ticket events
-
-Admin actions
-
-Full audit trail enables:
-
-Time-travel debugging
-
-Compliance pipelines
-
-ML training datasets
-
-Admin Dashboard (Optional Frontend)
-
-Real-time shipment map
-
-Ticketing console for Support Agents
-
-Streaming Kafka-driven analytics
-
-### 3. Architecture Overview
-```
-+---------------------------+
-|   Sender / Recipient App  |
-|   Service Provider App    |
-|   Admin & Support UI      |
-+-------------+-------------+
-              |
-           REST / WS
-              |
-      +-------+--------+
-      |  Play Framework |
-      |    API Layer    |
-      +-------+---------+
-              |
-       Commands / Queries
-              |
-+-------------+-----------------------------+
-|         Pekko Cluster (Multi-Node)        |
-|-------------------------------------------|
-|  ShipmentActor (Sharded, Event-Sourced)   |
-|  ServiceProviderActor                     |
-|  SupportTicketActor (Event-Sourced)       |
-|  NotificationActor                         |
-|  RouteSupervisorActor                      |
-+-------------+-----------------------------+
-              |
-              | Events (Kafka)
-              v
-        +-----------+
-        |   Kafka   |
-        +-----------+
-              |
-     Stream Processing / ETL
-              |
-        +-----------+
-        | Postgres  |
-        | Read Side |
-        +-----------+
-```
-
-**4. Technologies Used**
-   Backend
-
-Pekko Cluster & Sharding
-
-Pekko Persistence (Event Sourcing)
-
-Pekko Streams
-
-Apache Kafka
-
-Play Framework (Scala)
-
-PostgreSQL (Materialized views)
-
-WebSockets (Play + Pekko Streams)
-
-JSON or Protobuf
-
-Ops
-
-Docker Compose
-
-GitHub Actions CI/CD
-
-Kubernetes-ready deployment manifests
-
-Frontend (Optional for demo)
-
-Angular or React-based admin/support dashboard
-
-Real-time WebSocket updates
-
-**5. Use Cases**
-1. Create Shipment
-
-User submits shipment
-
-ShipmentActor persists ShipmentCreated
-
-Kafka publishes shipment-created
-
-WebSocket pushes notifications
-
-2. Assign Service Provider
-
-Admin assigns or system auto-assigns
-
-ServiceProviderAssigned event stored
-
-Dashboard updated in real-time
-
-3. Pickup Workflow
-
-Provider accepts pickup
-
-Provider collects package
-
-Shipment state transitions: PickupStarted, PickedUp
-
-4. Transit Workflow
-
-Provider sends GPS updates
-
-Map updates via WebSocket
-
-State transitions: InTransit
-
-5. Delivery Workflow
-
-Deliver to recipient
-
-Signature/photo (metadata stored as event)
-
-Final event: Delivered
-
-6. Support Agent Features
-   Create support ticket
-
-Support agent creates inquiry tied to shipment or user
-
-Event: SupportTicketCreated
-
-Kafka publishes ticket event
-
-Admin & Support dashboard update live
-
-Add internal notes / responses
-
-Events: SupportTicketUpdated
-
-Resolve ticket
-
-Event: SupportTicketResolved
-
-WebSocket pushes resolution update
-
-Query ticket history
-
-Read-side provides full timeline (event-sourced)
-
-Monitor critical shipment exceptions
-
-Support Agent automatically receives:
-
-Delivery failures
-
-GPS offline alerts
-
-Exception events
-
-Escalation notifications
-
-6. Running the Project
-   git clone https://github.com/AraMjb/doodoo-logistics
-   cd doodoo-logistics
-   docker-compose up -d
-   sbt run
-
-
-This starts:
-
-Kafka
-
-Zookeeper
-
-PostgreSQL
-
-Play API Server
-
-Pekko Cluster Nodes
-
-7. Project Goals
-
-Demonstrate practical distributed-systems engineering
-
-Showcase mastery of:
-
-Cluster Sharding
-
-Event Sourcing
-
-CQRS
-
-Real-time streaming
-
-Actor supervision
-
-Event-driven pipelines
-
-Observability at scale
-
-Provide a reference architecture for real companies
-
-**8. Status**
-
-The project is being redesigned from an earlier Firebase-based architecture into a fully distributed enterprise-grade platform based on Pekko, 
-Kafka, Play, and PostgreSQL.
-
-Upcoming tasks include:
-
-Shipment command model refinement
-
-Materialized read-side projections
-
-WebSocket stream consolidation
-
-SupportTicketActor finalization
-
-Route optimization (future extension)
