@@ -39,5 +39,9 @@ jobs:
       - name: Build
         run: sbt clean compile
 
-      - name: Test
+      - name: Run tests
+        env:
+          DB_PASSWORD: test_password
+          DB_USER: test_user
+          DB_URL: jdbc:postgresql://localhost:5432/test
         run: sbt test
