@@ -16,7 +16,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
 import scala.helpers.ShipmentTestHelpers
 import play.api.Application
-import infrastructure.persistence.tables.{ShipmentsTable, UsersTable, SupportCenterTable}
+import infrastructure.persistence.tables.{ShipmentsTable, UserTable, SupportCenterTable}
 
 class SlickShipmentReadRepositoryIT extends AnyWordSpec
   with Matchers
