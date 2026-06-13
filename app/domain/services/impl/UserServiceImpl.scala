@@ -3,8 +3,8 @@ package domain.services.impl
 import com.google.inject.{Inject, Singleton}
 import controllers.helpers.ResultMapper
 import domain.errors.{DomainError, InvalidCredentials, UpdateUserError, UserAlreadyExists, UserDeletionError, UserNotFound, UserNotFoundWithId, UserStatusIsNotActive, UserStatusUpdateError, ValidationError}
-import domain.models.{User, UserRole, UserStatus}
-import domain.services.{JwtService, UserService}
+import domain.models.{User, UserAccountUpdated, UserCreated, UserRole, UserStatus}
+import domain.services.{EventBus, JwtService, UserService}
 import repositories.UserRepository
 
 import java.time.Instant
@@ -15,7 +15,8 @@ import scala.util.{Failure, Success}
 @Singleton
 class UserServiceImpl @Inject()(
                             userRepository: UserRepository,
-                            jwt:JwtService
+                            jwt:JwtService,
+                            eventBus: EventBus
                             )(implicit ex: ExecutionContext) extends UserService with ResultMapper {
 
  override def registerUser(user: User): Future[Either[DomainError, User]] = {
@@ -39,7 +40,15 @@ class UserServiceImpl @Inject()(
 
           case Right(newUser) =>
             userRepository.createUser(newUser).map {
-              case Success(_) => Right(newUser)
+              case Success(_) =>
+                eventBus.publish(
+                  UserCreated(
+                    username = newUser.email,
+                    role = newUser.role,
+                    status = newUser.status
+                  )
+                )
+                Right(newUser)
               case Failure(ex) => Left(mapInsertException(ex))
             }
         }
@@ -83,7 +92,7 @@ class UserServiceImpl @Inject()(
           phone = user.phone,
           role = user.role,
           status = user.status,
-          createdAt = user.createdAt,
+          createdAt = existingUser.createdAt,
           updatedAt = Some(Instant.now())
         )
         userRepository.updateUser(updatedUser).map{
@@ -103,7 +112,15 @@ class UserServiceImpl @Inject()(
           updatedAt = Some(Instant.now())
         )
         userRepository.updateUser(updatedStatus).map{
-          case Success(_) => Right(updatedStatus)
+          case Success(_) =>
+            eventBus.publish(
+              UserAccountUpdated(
+                userId = updatedStatus.id,
+                email = updatedStatus.email,
+                status = updatedStatus.status
+              )
+            )
+            Right(updatedStatus)
           case Failure(ex) => Left(UserStatusUpdateError(ex.getMessage))
         }
     }

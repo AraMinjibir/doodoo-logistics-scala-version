@@ -1,4 +1,4 @@
-package repositories.write
+package scala.repository.write
 
 import domain.models.ShipmentStatus.Assigned
 import domain.models._
@@ -14,10 +14,10 @@ import repositories.{SlickShipmentRepository, SlickUserRepository}
 import slick.jdbc.JdbcProfile
 
 import java.time.Instant
-import scala.domain.helpers.ShipmentTestHelpers
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
 import java.util.UUID
+import scala.helpers.ShipmentTestHelpers
 import scala.util.Success
 
 class SlickShipmentWriteRepositoryIT

@@ -1,4 +1,4 @@
-package scala.domain.repository
+package scala.repository
 
 import infrastructure.persistence.tables.UserTable
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
@@ -15,6 +15,7 @@ import scala.concurrent.{Await, ExecutionContext}
 import domain.models.{User, UserRole, UserStatus}
 import domain.models.UserRole.{Admin, Recipient}
 import domain.models.UserStatus.Suspended
+import play.api.Application
 
 class SlickUserRepositoryIT
   extends AnyWordSpec
@@ -23,9 +24,9 @@ class SlickUserRepositoryIT
     with BeforeAndAfterAll
     with BeforeAndAfterEach{
 
-  lazy val ec = app.injector.instanceOf[ExecutionContext]
+  lazy val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
 
-  override def fakeApplication() =
+  override def fakeApplication(): Application =
     GuiceApplicationBuilder()
       .configure(
         "slick.dbs.default.profile" -> "slick.jdbc.H2Profile$",
@@ -35,7 +36,7 @@ class SlickUserRepositoryIT
         "slick.dbs.default.db.password" -> ""
       ).build()
 
-  lazy val repo     = app.injector.instanceOf[UserRepository]
+  lazy val repo: UserRepository = app.injector.instanceOf[UserRepository]
 
   lazy val dbConfig = app.injector.instanceOf[DatabaseConfigProvider].get[JdbcProfile]
   import dbConfig.profile.api._
@@ -56,7 +57,7 @@ class SlickUserRepositoryIT
         )), 5.seconds)
   }
 
-  val newUser = User.createUser(
+  val newUser: User = User.createUser(
     name = "DooDoo User",
     email = "DooDooUser@gmail.com",
     password = "doodoooaauiiq1234",
@@ -66,7 +67,7 @@ class SlickUserRepositoryIT
     errors => throw new RuntimeException(errors.mkString(",")),
     identity
   )
-  val newUser2 = User.createUser(
+  val newUser2: User = User.createUser(
     name = "DooDoo User2",
     email = "DooDooUser2@gmail.com",
     password = "doodoouser2112eiiq1234",

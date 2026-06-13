@@ -1,4 +1,4 @@
-package scala.domain.e2e
+package scala.e2e
 
 import com.dimafeng.testcontainers.{ForAllTestContainer, PostgreSQLContainer}
 import org.scalatestplus.play.PlaySpec
@@ -11,7 +11,7 @@ import play.api.libs.ws.WSClient
 import java.util.UUID
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
-import scala.domain.helpers.{ShipmentTestHelpers, SupportCenterTestHelper}
+import scala.helpers.{ShipmentTestHelpers, SupportCenterTestHelper}
 
 class SupportCenterE2ESpec
   extends PlaySpec

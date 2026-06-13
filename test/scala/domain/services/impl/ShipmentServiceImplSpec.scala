@@ -3,6 +3,7 @@ package scala.domain.services.impl
 import domain.errors.{ShipmentNotDelivered, ShipmentNotFound}
 import domain.models.UserRole.Recipient
 import domain.models.{Shipment, ShipmentStatus, UserRole}
+import domain.services.EventBus
 import domain.services.impl.ShipmentServiceImpl
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
@@ -13,10 +14,10 @@ import org.scalatestplus.mockito.MockitoSugar
 import repositories.{ShipmentRepository, UserRepository}
 
 import java.util.UUID
-import scala.domain.helpers.ShipmentTestHelpers
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.helpers.ShipmentTestHelpers
 import scala.util.{Failure, Success, Try}
 
 class ShipmentServiceImplSpec
@@ -30,10 +31,12 @@ class ShipmentServiceImplSpec
 
   val mockRepo: ShipmentRepository = mock[ShipmentRepository]
   val mockUserRepo: UserRepository = mock[UserRepository]
+  val eventBus:EventBus = mock[EventBus]
+
 
   override val shipmentId: UUID = UUID.fromString("11111111-1111-1111-1111-111111111111")
 
-  val service = new ShipmentServiceImpl(mockRepo,mockUserRepo)
+  val service = new ShipmentServiceImpl(mockRepo,mockUserRepo,eventBus)
 
   override def beforeEach(): Unit = {
     reset(mockRepo)
