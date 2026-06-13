@@ -41,21 +41,37 @@ class SlickUserRepositoryIT
   lazy val dbConfig = app.injector.instanceOf[DatabaseConfigProvider].get[JdbcProfile]
   import dbConfig.profile.api._
 
-  override def beforeAll(): Unit = {
-    val setupAction = DBIO.seq(
-     UserTable.table.schema.dropIfExists,
-      UserTable.table.schema.create,
-    )
-    Await.result(dbConfig.db.run(setupAction), 5.seconds)
-  }
+ override def beforeAll(): Unit = {
+  super.beforeAll()
 
-  override def beforeEach(): Unit = {
-    Await.result(
-      dbConfig.db.run(
-        DBIO.seq(
-          UserTable.table.delete,
-        )), 5.seconds)
-  }
+  val reset = DBIO.seq(
+    SupportCenterTable.table.schema.dropIfExists,
+    ShipmentsTable.table.schema.dropIfExists,
+    UserTable.table.schema.dropIfExists,
+
+    UserTable.table.schema.create,
+    ShipmentsTable.table.schema.create,
+    SupportCenterTable.table.schema.create
+  )
+
+  Await.result(dbConfig.db.run(reset), 10.seconds)
+}
+
+ override def beforeEach(): Unit = {
+  super.beforeEach()
+
+  val reset = DBIO.seq(
+    SupportCenterTable.table.schema.dropIfExists,
+    ShipmentsTable.table.schema.dropIfExists,
+    UserTable.table.schema.dropIfExists,
+
+    UserTable.table.schema.create,
+    ShipmentsTable.table.schema.create,
+    SupportCenterTable.table.schema.create
+  )
+
+  Await.result(dbConfig.db.run(reset), 10.seconds)
+}
 
   val newUser: User = User.createUser(
     name = "DooDoo User",
