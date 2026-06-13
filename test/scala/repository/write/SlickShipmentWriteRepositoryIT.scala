@@ -13,8 +13,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import repositories.{SlickShipmentRepository, SlickUserRepository}
 import slick.jdbc.JdbcProfile
 import play.api.Application
-import slick.dbio.DBIO
-
+import infrastructure.tables.{UsersTable, SupportCenterTable}
 import java.time.Instant
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
