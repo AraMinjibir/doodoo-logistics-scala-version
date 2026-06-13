@@ -1,6 +1,6 @@
 package scala.repository
 
-import infrastructure.persistence.tables.UserTable
+import infrastructure.persistence.tables.{UserTable, ShipmentsTable, SupportCenterTable}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
