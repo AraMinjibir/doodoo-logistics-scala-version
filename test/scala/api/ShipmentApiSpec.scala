@@ -31,7 +31,7 @@ class ShipmentApiSpec extends PlaySpec
 
   val cleanup = DBIO.seq(
     ShipmentsTable.table.delete,
-    UsersTable.table.delete
+    UserTable.table.delete
   )
 
   Await.result(dbConfig.db.run(cleanup), 5.seconds)
@@ -44,7 +44,7 @@ class ShipmentApiSpec extends PlaySpec
   import dbConfig.profile.api._
 
   val setup = DBIO.seq(
-    UsersTable.table.schema.create,
+    UserTable.table.schema.create,
     ShipmentsTable.table.schema.create
   )
 
