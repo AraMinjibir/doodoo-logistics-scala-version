@@ -13,7 +13,6 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import repositories.{SlickShipmentRepository, SlickUserRepository}
 import slick.jdbc.JdbcProfile
 import play.api.Application
-import infrastructure.tables.{UsersTable, SupportCenterTable}
 import java.time.Instant
 import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration._
@@ -50,14 +49,12 @@ class SlickShipmentWriteRepositoryIT
  override def beforeAll(): Unit = {
   val reset = DBIO.seq(
     // DROP (child → parent)
-    SupportCenterTable.table.schema.dropIfExists,
     ShipmentsTable.table.schema.dropIfExists,
     UserTable.table.schema.dropIfExists,
 
     // CREATE (parent → child)
     UserTable.table.schema.create,
     ShipmentsTable.table.schema.create,
-    SupportCenterTable.table.schema.create
   )
 
   Await.result(dbConfig.db.run(reset), 10.seconds)
@@ -65,7 +62,6 @@ class SlickShipmentWriteRepositoryIT
 
   override def beforeEach(): Unit = {
   val cleanup = DBIO.seq(
-    SupportCenterTable.table.delete,
     ShipmentsTable.table.delete,
     UserTable.table.delete
   )
