@@ -20,6 +20,13 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Install sbt
+        run: |
+          echo "Installing sbt..."
+          curl -sL https://github.com/sbt/sbt/releases/download/v1.10.2/sbt-1.10.2.tgz | tar xz
+          sudo mv sbt /usr/local/
+          echo "/usr/local/sbt/bin" >> $GITHUB_PATH
+
       - name: Cache SBT dependencies
         uses: actions/cache@v4
         with:
@@ -29,8 +36,8 @@ jobs:
             target/
           key: ${{ runner.os }}-sbt-${{ hashFiles('**/*.sbt', '**/build.properties') }}
 
-      - name: Compile project
+      - name: Build
         run: sbt clean compile
 
-      - name: Run tests
+      - name: Test
         run: sbt test
