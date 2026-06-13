@@ -17,7 +17,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
 import scala.helpers.ShipmentTestHelpers
 import play.api.Application
-import slick.dbio.DBIO
+import infrastructure.tables.{UsersTable, SupportCenterTable}
 
 class SlickShipmentReadRepositoryIT extends AnyWordSpec
   with Matchers
