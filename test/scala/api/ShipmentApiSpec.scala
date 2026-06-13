@@ -13,8 +13,8 @@ import java.util.UUID
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 import scala.helpers.ShipmentTestHelpers
-import scala.infrastructure.table.ShipmentsTable
-import scala.infrastructure.table.UsersTable
+import infrastructure.table.{ShipmentsTable, UsersTable}
+
 
 class ShipmentApiSpec extends PlaySpec
   with GuiceOneAppPerSuite
