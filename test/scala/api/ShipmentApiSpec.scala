@@ -8,6 +8,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.libs.json._
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.db.slick.DatabaseConfigProvider
 
 import java.util.UUID
 import scala.concurrent.Await
