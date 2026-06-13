@@ -7,6 +7,13 @@ variables:
 
 image: sbtscala/scala-sbt:latest
 
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - ~/.ivy2/cache
+    - ~/.sbt
+    - target/
+
 build:
   stage: build
   script:
