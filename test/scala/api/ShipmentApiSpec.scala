@@ -28,7 +28,6 @@ class ShipmentApiSpec extends PlaySpec
 
   val cleanup = DBIO.seq(
     ShipmentsTable.table.delete,
-    ServiceProviderTable.table.delete,
     UsersTable.table.delete
   )
 
@@ -43,7 +42,6 @@ class ShipmentApiSpec extends PlaySpec
 
   val setup = DBIO.seq(
     UsersTable.table.schema.create,
-    ServiceProviderTable.table.schema.create,
     ShipmentsTable.table.schema.create
   )
 
