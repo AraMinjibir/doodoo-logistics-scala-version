@@ -20,21 +20,35 @@ class ShipmentApiSpec extends PlaySpec
   with BeforeAndAfterEach
   with ShipmentTestHelpers {
 
-  override def beforeEach(): Unit = {
-    // Get the database instance from the injector
-    val dbConfig = app.injector.instanceOf[play.api.db.slick.DatabaseConfigProvider].get[slick.jdbc.JdbcProfile]
-    import dbConfig.profile.api._
+ override def beforeEach(): Unit = {
+  val dbConfig = app.injector.instanceOf[DatabaseConfigProvider]
+    .get[slick.jdbc.JdbcProfile]
 
-    // Manually truncate the table before every test
-    val deleteAction = infrastructure.persistence.tables.ShipmentsTable.table.delete
-    Await.result(dbConfig.db.run(deleteAction), 5.seconds)
-  }
+  import dbConfig.profile.api._
+
+  val cleanup = DBIO.seq(
+    ShipmentsTable.table.delete,
+    ServiceProviderTable.table.delete,
+    UsersTable.table.delete
+  )
+
+  Await.result(dbConfig.db.run(cleanup), 5.seconds)
+}
+    
   override def beforeAll(): Unit = {
-    val dbConfig = app.injector.instanceOf[play.api.db.slick.DatabaseConfigProvider].get[slick.jdbc.JdbcProfile]
-    import dbConfig.profile.api._
-    // Create tables
-    Await.result(dbConfig.db.run(infrastructure.persistence.tables.ShipmentsTable.table.schema.create), 5.seconds)
-  }
+  val dbConfig = app.injector.instanceOf[DatabaseConfigProvider]
+    .get[slick.jdbc.JdbcProfile]
+
+  import dbConfig.profile.api._
+
+  val setup = DBIO.seq(
+    UsersTable.table.schema.create,
+    ServiceProviderTable.table.schema.create,
+    ShipmentsTable.table.schema.create
+  )
+
+  Await.result(dbConfig.db.run(setup), 10.seconds)
+}
 
   override def fakeApplication() =
     GuiceApplicationBuilder()
