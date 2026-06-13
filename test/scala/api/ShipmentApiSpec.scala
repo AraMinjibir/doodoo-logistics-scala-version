@@ -13,7 +13,7 @@ import java.util.UUID
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 import scala.helpers.ShipmentTestHelpers
-import infrastructure.tables.{ShipmentsTable, UsersTable}
+import infrastructure.persistence.tables.{ShipmentsTable, UserTable}
 
 
 class ShipmentApiSpec extends PlaySpec
