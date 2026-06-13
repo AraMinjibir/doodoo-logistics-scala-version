@@ -8,7 +8,6 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.inject.guice.GuiceApplicationBuilder
 import slick.jdbc.JdbcProfile
-import infrastructure.persistence.tables.ShipmentsTable
 import repositories.SlickShipmentRepository
 
 import java.util.UUID
@@ -17,7 +16,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
 import scala.helpers.ShipmentTestHelpers
 import play.api.Application
-import infrastructure.tables.{UsersTable, SupportCenterTable}
+import infrastructure.persistence.tables.{ShipmentsTable, UsersTable, SupportCenterTable}
 
 class SlickShipmentReadRepositoryIT extends AnyWordSpec
   with Matchers
